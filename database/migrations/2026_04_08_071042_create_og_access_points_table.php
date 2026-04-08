@@ -6,15 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('groups', function (Blueprint $table) {
+        Schema::create('og_access_points', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100);
-            $table->text('description')->nullable();
+            $table->string('platform', 50);
+            $table->string('contact', 255);
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();
@@ -26,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('groups');
+        Schema::dropIfExists('og_access_points');
     }
 };

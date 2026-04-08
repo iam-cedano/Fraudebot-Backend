@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('scammer_id')->constrained('scammers')->onDelete('cascade');
             $table->string('name', 50);
             $table->string('social_media', 50);
-            $table->string('url', 100);
+            $table->string('contact', 100);
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();
