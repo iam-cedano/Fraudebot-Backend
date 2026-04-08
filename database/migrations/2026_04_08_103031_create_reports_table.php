@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('group_id')->nullable()->constrained('groups')->onDelete('set null');
+            $table->foreignId('organization_id')->nullable()->constrained('organizations')->onDelete('set null');
             $table->string('title', 50);
             $table->text('description')->nullable();
             $table->boolean('was_sucessful')->default(false);
