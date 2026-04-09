@@ -22,7 +22,7 @@ class TestSeeder extends Seeder
                         [
                             'name' => 'Mario Lopez',
                             'social_media' => 'whatsapp',
-                            'contact' => '+528135987431'
+                            'contact' => '+521111111111'
                         ]
                     ],
                     'payment_methods' => [
@@ -39,7 +39,7 @@ class TestSeeder extends Seeder
             'Ecohuerta' => [
                 [
                     'platform' => 'website',
-                    'contact' => 'https://ecohuerta.shop',
+                    'contact' => 'https://example.com',
                     'is_active' => true
                 ],
                 [
