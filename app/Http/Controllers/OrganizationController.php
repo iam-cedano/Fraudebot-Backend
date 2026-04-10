@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
-use Illuminate\Http\Request;
+use App\Models\Scammer;
 use Illuminate\Support\Facades\Validator;
 
 class OrganizationController extends Controller
@@ -41,7 +41,21 @@ class OrganizationController extends Controller
      */
     public function show(Organization $organization)
     {
-        return response()->json($organization->load(['scammers', 'accessPoints', 'reports']));
+        $organizationData = $organization->toArray();
+
+        if (request()->query('withScammers') === 'basic') {
+            $organizationData['scammers'] = $organization
+                ->scammers()
+                ->orderBy('scammers.id')
+                ->get()
+                ->map(fn (Scammer $scammer) => [
+                    'id' => $scammer->id,
+                    'name' => $scammer->name,
+                ])
+                ->all();
+        }
+
+        return response()->json($organizationData);
     }
 
     /**
@@ -72,5 +86,26 @@ class OrganizationController extends Controller
         $organization->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Add a scammer to the given organization.
+     */
+    public function addScammer(int $organizationId, int $scammerId)
+    {
+        $organization = Organization::findOrFail($organizationId);
+        $scammer = Scammer::findOrFail($scammerId);
+
+        $organization->scammers()->syncWithoutDetaching([$scammer->id]);
+
+        return response()->json(['message' => 'Scammer added successfully'], 201);
+    }
+
+    /**
+     * Display all scammers that belong to the organization.
+     */
+    public function getScammers(Organization $organization)
+    {
+        return response()->json($organization->scammers);
     }
 }

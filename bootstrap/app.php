@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsureResponseIsJSON;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Tasks\DeleteAnonymousUser;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->append(EnsureResponseIsJSON::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
