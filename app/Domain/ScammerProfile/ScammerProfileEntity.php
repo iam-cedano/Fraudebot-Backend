@@ -4,6 +4,7 @@ namespace App\Domain\ScammerProfile;
 
 use App\Domain\Entity;
 use App\Domain\ScammerProfile\Enums\SocialMediaType;
+use App\Domain\ScammerProfile\ValueObjects\SocialMedia;
 
 class ScammerProfileEntity extends Entity
 {
@@ -63,6 +64,12 @@ class ScammerProfileEntity extends Entity
 
     protected function transform(): void {
         $this->name = trim($this->name);
-        $this->contact = strtolower(trim($this->contact));
+        # $this->contact = strtolower(trim($this->contact));
+
+        if (filter_var($this->contact, FILTER_VALIDATE_URL) || preg_match('/^(?!:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/i', $this->contact) || preg_match('/^(http|https):\/\/[^ "]+$/i', $this->contact)) {
+            $socialMediaVO = new SocialMedia($this->socialMedia);
+
+            $this->contact = $socialMediaVO->extractByType($this->contact);
+        }
     }
 }

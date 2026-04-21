@@ -11,4 +11,5 @@ enum SocialMediaType: int
     case EMAIL = 5;
     case CELLPHONE = 6;
     case TELEGRAM = 7;
+    case INSTAGRAM = 8;
 }
