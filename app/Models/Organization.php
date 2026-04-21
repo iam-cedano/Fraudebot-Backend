@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Organization\OrganizationEntity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -42,5 +43,18 @@ class Organization extends Model
     public function reports()
     {
         return $this->hasMany(Report::class);
+    }
+
+    /**
+     * Convert the model to a domain entity.
+     */
+    public function toEntity(): OrganizationEntity
+    {
+        return new OrganizationEntity(
+            id: $this->id,
+            name: $this->name,
+            description: $this->description,
+            isActive: $this->is_active,
+        );
     }
 }
