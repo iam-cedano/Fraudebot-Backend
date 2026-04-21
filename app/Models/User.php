@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\User\UserEntity;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -53,5 +54,17 @@ class User extends Authenticatable
     public function reports()
     {
         return $this->hasMany(Report::class);
+    }
+
+    /**
+     * Convert the model to a domain entity.
+     */
+    public function toEntity(): UserEntity
+    {
+        return new UserEntity(
+            id: $this->id,
+            username: $this->username,
+            email: $this->email,
+        );
     }
 }
