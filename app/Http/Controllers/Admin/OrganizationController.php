@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Scammer;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class OrganizationController extends Controller
@@ -66,7 +68,7 @@ class OrganizationController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -86,6 +88,17 @@ class OrganizationController extends Controller
         $organization->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Restore the specified resource from storage.
+     */
+    public function restore(int $id)
+    {
+        $organization = Organization::onlyTrashed()->findOrFail($id);
+        $organization->restore();
+
+        return response()->json($organization);
     }
 
     /**
