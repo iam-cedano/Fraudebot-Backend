@@ -2,11 +2,20 @@
 
 namespace App\Providers;
 
+use App\Infrastructure\Facebook\FacebookServiceInterface;
+use App\Infrastructure\Facebook\FacebookService;
+
+use App\Infrastructure\Instagram\InstagramService;
+use App\Infrastructure\Instagram\InstagramServiceInterface;
+use App\Infrastructure\TikTok\TikTokService;
+use App\Infrastructure\TikTok\TikTokServiceInterface;
+use App\Infrastructure\Youtube\YoutubeService;
+use App\Infrastructure\Youtube\YoutubeServiceInterface;
 use App\Repositories\Scammer\FrontendScammerRepository;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 
 use App\Http\Controllers\Public;
-use App\Http\Controllers\Admin;
 
 use App\Repositories\Organization\OrganizationRepositoryInterface;
 use App\Repositories\Scammer\ScammerRepositoryInterface;
@@ -20,6 +29,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        Model::preventLazyLoading(true);
+
+        $this->app->singleton(FacebookServiceInterface::class, FacebookService::class);
+        $this->app->singleton(YoutubeServiceInterface::class, YoutubeService::class);
+        $this->app->singleton(InstagramServiceInterface::class, InstagramService::class);
+        $this->app->singleton(TikTokServiceInterface::class, TikTokService::class);
+
         $this->app->when(Public\OrganizationController::class)
         ->needs(OrganizationRepositoryInterface::class)
         ->give(PublicOrganizationRepository::class);

@@ -3,8 +3,8 @@
 namespace App\Domain\ScammerProfile;
 
 use App\Domain\Entity;
-use App\Domain\ScammerProfile\Enums\SocialMediaType;
-use App\Domain\ScammerProfile\ValueObjects\SocialMedia;
+use App\Domain\ScammerProfile\Enums\PlatformType;
+use App\Domain\ScammerProfile\ValueObjects\Platform;
 
 class ScammerProfileEntity extends Entity
 {
@@ -12,7 +12,7 @@ class ScammerProfileEntity extends Entity
         public readonly ?int $id,
         public int $scammerId,
         public string $name,
-        public SocialMediaType $socialMedia,
+        public PlatformType $platformType,
         public string $contact,
         public bool $isActive,
     ) {
@@ -25,7 +25,7 @@ class ScammerProfileEntity extends Entity
             'id' => $this->id,
             'scammer_id' => $this->scammerId,
             'name' => $this->name,
-            'social_media' => $this->socialMedia,
+            'platform' => $this->platformType,
             'contact' => $this->contact,
             'is_active' => $this->isActive,
         ];
@@ -41,8 +41,8 @@ class ScammerProfileEntity extends Entity
             throw new \InvalidArgumentException('Contact cannot be empty');
         }
 
-        if (empty($this->socialMedia)) {
-            throw new \InvalidArgumentException('Social media cannot be empty');
+        if (empty($this->platformType)) {
+            throw new \InvalidArgumentException('PlatformType type cannot be empty');
         }
 
         if (empty($this->scammerId)) {
@@ -67,9 +67,9 @@ class ScammerProfileEntity extends Entity
         # $this->contact = strtolower(trim($this->contact));
 
         if (filter_var($this->contact, FILTER_VALIDATE_URL) || preg_match('/^(?!:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/i', $this->contact) || preg_match('/^(http|https):\/\/[^ "]+$/i', $this->contact)) {
-            $socialMediaVO = new SocialMedia($this->socialMedia);
+            $socialMediaVO = new Platform($this->platformType);
 
-            $this->contact = $socialMediaVO->extractByType($this->contact);
+            $this->contact = $socialMediaVO->extractURL($this->contact);
         }
     }
 }

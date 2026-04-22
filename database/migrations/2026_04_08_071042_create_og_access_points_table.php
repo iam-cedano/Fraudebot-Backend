@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('og_access_points', function (Blueprint $table) {
             $table->id();
-            $table->string('platform', 50);
+            $table->string('PlatformType', 50);
             $table->string('contact', 255);
             $table->boolean('is_active')->default(true);
             $table->softDeletes();

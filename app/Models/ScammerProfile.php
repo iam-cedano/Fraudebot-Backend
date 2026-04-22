@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Domain\ScammerProfile\Enums\SocialMediaType;
+use App\Domain\ScammerProfile\Enums\PlatformType;
 use App\Domain\ScammerProfile\ScammerProfileEntity;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,13 +15,13 @@ class ScammerProfile extends Model
     protected $fillable = [
         'scammer_id',
         'name',
-        'social_media',
+        'platform',
         'contact',
         'is_active',
     ];
 
     protected $appends = [
-        'social_media_name',
+        'platform_name',
     ];
 
     protected $casts = [
@@ -29,14 +29,14 @@ class ScammerProfile extends Model
         'scammer_id' => 'integer',
         'contact' => 'string',
         'name' => 'string',
-        'social_media' => SocialMediaType::class,
+        'platform' => PlatformType::class,
         'is_active' => 'boolean',
     ];
 
-    protected function socialMediaName(): Attribute
+    protected function platformName(): Attribute
     {
         return Attribute::make(
-            get: fn () => ucfirst(strtolower($this->social_media->name)),
+            get: fn () => ucfirst(strtolower($this->platform->name)),
         );
     }
 
@@ -57,7 +57,7 @@ class ScammerProfile extends Model
             id: $this->id,
             scammerId: $this->scammer_id,
             name: $this->name,
-            socialMedia: $this->social_media,
+            platformType: $this->platform,
             contact: $this->contact,
             isActive: $this->is_active,
         );

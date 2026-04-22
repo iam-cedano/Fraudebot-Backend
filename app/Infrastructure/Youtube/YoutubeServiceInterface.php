@@ -1,0 +1,8 @@
+<?php
+
+namespace App\Infrastructure\Youtube;
+
+interface YoutubeServiceInterface
+{
+    public function getChannel($url);
+}
