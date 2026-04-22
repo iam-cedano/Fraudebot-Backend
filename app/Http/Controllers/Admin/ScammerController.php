@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Domain\ScammerProfile\Enums\SocialMediaType;
+use App\Domain\ScammerProfile\Enums\PlatformType;
 use App\Domain\ScammerProfile\ScammerProfileEntity;
 use App\Http\Controllers\Controller;
 use App\Models\Scammer;
@@ -99,7 +99,7 @@ class ScammerController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:50',
-            'social_media' => 'sometimes|integer|between:1,255',
+            'platform' => 'sometimes',
             'contact' => 'sometimes|string|max:100',
             'is_active' => 'sometimes|boolean',
         ]);
@@ -108,16 +108,49 @@ class ScammerController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $profile->update($request->all());
+        $platform = $profile->platform;
 
-        return response()->json($profile);
+        if ($request->has('platform')) {
+            $inputPlatform = $request->input('platform');
+
+            if (is_numeric($inputPlatform)) {
+                $platform = PlatformType::tryFrom($inputPlatform) ?? throw new \InvalidArgumentException('Invalid platform type');
+            } else {
+                $medias = array_column(PlatformType::cases(), 'value', 'name');
+                $mediaNumber = $medias[strtoupper($inputPlatform)] ?? throw new \InvalidArgumentException('Invalid platform type');
+                $platform = PlatformType::from($mediaNumber);
+            }
+        }
+
+        $profileEntity = new ScammerProfileEntity(
+            id: $profile->id,
+            scammerId: $profile->scammer_id,
+            name: $request->input('name', $profile->name),
+            platformType: $platform,
+            contact: $request->input('contact', $profile->contact),
+            isActive: $request->input('is_active', $profile->is_active),
+        );
+
+        $profile->update($profileEntity->toArray());
+
+        return response()->json([
+            'id' => $profile->id,
+            'scammer_id' => $profile->scammer_id,
+            'name' => $profile->name,
+            'platform' => $profile->platform_name,
+            'contact' => $profile->contact,
+            'is_active' => $profile->is_active,
+            'created_at' => $profile->created_at,
+            'updated_at' => $profile->updated_at,
+        ]);
     }
 
+    // Create profile of a scammer
     public function createProfile(Request $request, Scammer $scammer)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:50',
-            'social_media' => ['required', Rule::enum(SocialMediaType::class)],
+            'platform' => 'required',
             'contact' => 'required|string|max:100',
             'is_active' => 'boolean',
         ]);
@@ -126,18 +159,41 @@ class ScammerController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
+        $inputPlatform = $request->input('platform');
+
+        $platform = null;
+
+        if (is_numeric($inputPlatform)) {
+            $platform = PlatformType::tryFrom($inputPlatform) ?? throw new \InvalidArgumentException('Invalid platform type');
+        } else {
+            $medias = array_column(PlatformType::cases(), 'value', 'name');
+
+            $mediaNumber = $medias[strtoupper($inputPlatform)] ?? throw new \InvalidArgumentException('Invalid platform type');
+            
+            $platform = PlatformType::from($mediaNumber);
+        }
+
         $profile = new ScammerProfileEntity(
             id: null,
             scammerId: $scammer->id,
             name: $request->input('name'),
-            socialMedia: SocialMediaType::from($request->input('social_media')),
+            platformType: $platform,
             contact: $request->input('contact'),
             isActive: $request->input('is_active', true),
         );
 
         $profileModel = $scammer->profiles()->create($profile->toArray());
 
-        return response()->json($profileModel, 201);
+        return response()->json([
+            'id' => $profileModel->id,
+            'scammer_id' => $profileModel->scammer_id,
+            'name' => $profileModel->name,
+            'platform' => $profileModel->platform_name,
+            'contact' => $profileModel->contact,
+            'is_active' => $profileModel->is_active,
+            'created_at' => $profileModel->created_at,
+            'updated_at' => $profileModel->updated_at,
+        ], 201);
     }
 
     /**

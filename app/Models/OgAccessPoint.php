@@ -13,7 +13,7 @@ class OgAccessPoint extends Model
 
     protected $fillable = [
         'organization_id',
-        'platform',
+        'PlatformType',
         'contact',
         'is_active',
     ];
@@ -34,7 +34,7 @@ class OgAccessPoint extends Model
         return new OgAccessPointEntity(
             id: $this->id,
             organizationId: $this->organization_id,
-            platform: $this->platform,
+            PlatformType: $this->PlatformType,
             contact: $this->contact,
             isActive: $this->is_active,
         );

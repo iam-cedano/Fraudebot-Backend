@@ -9,7 +9,7 @@ class OgAccessPointEntity extends Entity
     public function __construct(
         public readonly ?int $id,
         public readonly int $organizationId,
-        public string $platform,
+        public string $PlatformType,
         public string $contact,
         public bool $isActive,
     ) {
@@ -31,7 +31,7 @@ class OgAccessPointEntity extends Entity
         return [
             'id' => $this->id,
             'organization_id' => $this->organizationId,
-            'platform' => $this->platform,
+            'PlatformType' => $this->PlatformType,
             'contact' => $this->contact,
             'is_active' => $this->isActive,
         ];
