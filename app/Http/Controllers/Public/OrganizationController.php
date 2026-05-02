@@ -30,7 +30,7 @@ class OrganizationController extends Controller
             abort(404);
         }
 
-        $organizationData = $organization->toArray();
+        $organizationData = $organization->only(['id', 'name', 'description', 'is_active']);
 
         if (request()->query('withScammers') === 'basic') {
             $organizationData['scammers'] = $this->organizationRepository->getActiveScammers($organization)

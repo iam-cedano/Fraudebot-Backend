@@ -3,6 +3,12 @@ namespace App\Repositories\Scammer;
 
 use App\Domain\Scammer\ValueObjects\Clue;
 use App\Domain\Scammer\Enums\ClueType;
+use App\Domain\ScammerPaymentMethod\ValueObjects\AccountNumber;
+use App\Domain\ScammerPaymentMethod\ValueObjects\CardNumber;
+use App\Domain\ScammerPaymentMethod\ValueObjects\Clabe;
+use App\Domain\ScammerProfile\ValueObjects\Email;
+use App\Domain\ScammerProfile\ValueObjects\PhoneNumber;
+use App\Domain\ScammerProfile\ValueObjects\URL;
 use App\Models\Scammer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -12,7 +18,7 @@ class FrontendScammerRepository implements ScammerRepositoryInterface {
         $cacheKey = "scammers:all:$page:$count";
 
         return Cache::remember($cacheKey, 3600, function () use ($page, $count) {
-            $responses = Scammer::paginate($count, ['name', 'iso_country', 'is_active'], 'page', $page);
+            $responses = Scammer::paginate($count, ['id', 'name', 'iso_country', 'is_active'], 'page', $page);
             return $responses->getCollection();
         });
     }
@@ -39,13 +45,13 @@ class FrontendScammerRepository implements ScammerRepositoryInterface {
     }
 
     private function findScammerByCardNumber(string $cardNumber, int $page, int $count): Collection {
-        $parsedCardNumber = preg_replace('/\D/', '', $cardNumber);
+        $cardNumberObj = new CardNumber($cardNumber);
 
-        $cacheKey = "scammers:pm:card:" . hash('md5', $parsedCardNumber) . ":$page:$count";
+        $cacheKey = "scammers:pm:card:" . hash('md5', $cardNumberObj) . ":$page:$count";
 
-        return Cache::remember($cacheKey, 3600, function () use ($parsedCardNumber, $page, $count) {
-            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($parsedCardNumber) {
-                $query->where('reference', 'LIKE', "%$parsedCardNumber%");
+        return Cache::remember($cacheKey, 3600, function () use ($cardNumberObj, $page, $count) {
+            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($cardNumberObj) {
+                $query->where('reference', '=', $cardNumberObj);
             })->paginate($count, ['name', 'iso_country', 'is_active'], 'page', $page);
 
             return $scammers->getCollection();
@@ -53,12 +59,12 @@ class FrontendScammerRepository implements ScammerRepositoryInterface {
     }
 
     private function findScammerByClabe(string $clabe, int $page, int $count): Collection {
-        $parsedClabe = trim($clabe);
-        $cacheKey = "scammers:pm:clabe:" . hash('md5', $parsedClabe) . ":$page:$count";
+        $clabeObj = new Clabe($clabe);
+        $cacheKey = "scammers:pm:clabe:" . hash('md5', $clabeObj) . ":$page:$count";
 
-        return Cache::remember($cacheKey, 3600, function () use ($parsedClabe, $page, $count) {
-            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($parsedClabe) {
-                $query->where('reference', 'LIKE', "%$parsedClabe%");
+        return Cache::remember($cacheKey, 3600, function () use ($clabeObj, $page, $count) {
+            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($clabeObj) {
+                $query->where('reference', '=', $clabeObj);
             })->paginate($count, ['name', 'iso_country', 'is_active'], 'page', $page);
 
             return $scammers->getCollection();
@@ -66,12 +72,12 @@ class FrontendScammerRepository implements ScammerRepositoryInterface {
     }
 
     private function findScammerByAccountNumber(string $accountNumber, int $page, int $count): Collection {
-        $parsedAccountNumber = trim($accountNumber);
-        $cacheKey = "scammers:pm:account:" . hash('md5', $parsedAccountNumber) . ":$page:$count";
+        $parsedAccountObj = new AccountNumber($accountNumber);
+        $cacheKey = "scammers:pm:account:" . hash('md5', $parsedAccountObj) . ":$page:$count";
 
-        return Cache::remember($cacheKey, 3600, function () use ($parsedAccountNumber, $page, $count) {
-            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($parsedAccountNumber) {
-                $query->where('reference', 'LIKE', "%$parsedAccountNumber%");
+        return Cache::remember($cacheKey, 3600, function () use ($parsedAccountObj, $page, $count) {
+            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($parsedAccountObj) {
+                $query->where('reference', '=', $parsedAccountObj);
             })->paginate($count, ['name', 'iso_country', 'is_active'], 'page', $page);
 
             return $scammers->getCollection();
@@ -79,12 +85,12 @@ class FrontendScammerRepository implements ScammerRepositoryInterface {
     }
 
     private function findScammerByEmail(string $email, int $page, int $count): Collection {
-        $parsedEmail = trim($email);
-        $cacheKey = "scammers:pm:email:" . hash('md5', $parsedEmail) . ":$page:$count";
+        $emailObj = new Email($email);
+        $cacheKey = "scammers:pm:email:" . hash('md5', $emailObj) . ":$page:$count";
 
-        return Cache::remember($cacheKey, 3600, function () use ($parsedEmail, $page, $count) {
-            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($parsedEmail) {
-                $query->where('reference', 'LIKE', "%$parsedEmail%");
+        return Cache::remember($cacheKey, 3600, function () use ($emailObj, $page, $count) {
+            $scammers = Scammer::whereHas('profiles', function ($query) use ($emailObj) {
+                $query->where('contact', '=', $emailObj);
             })->paginate($count, ['name', 'iso_country', 'is_active'], 'page', $page);
 
             return $scammers->getCollection();
@@ -92,12 +98,12 @@ class FrontendScammerRepository implements ScammerRepositoryInterface {
     }
 
     private function findScammerByPhoneNumber(string $phoneNumber, int $page, int $count): Collection {
-        $parsedPhoneNumber = trim(preg_replace('/\D/', '', $phoneNumber));
-        $cacheKey = "scammers:pm:phone:" . hash('md5', $parsedPhoneNumber) . ":$page:$count";
+        $phoneNumberObj = new PhoneNumber($phoneNumber);
+        $cacheKey = "scammers:pm:phone:" . hash('md5', $phoneNumberObj) . ":$page:$count";
 
-        return Cache::remember($cacheKey, 3600, function () use ($parsedPhoneNumber, $page, $count) {
-            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($parsedPhoneNumber) {
-                $query->where('reference', 'LIKE', "%$parsedPhoneNumber%");
+        return Cache::remember($cacheKey, 3600, function () use ($phoneNumberObj, $page, $count) {
+            $scammers = Scammer::whereHas('paymentMethods', function ($query) use ($phoneNumberObj) {
+                $query->where('reference', '=', $phoneNumberObj);
             })->paginate($count, ['name', 'iso_country', 'is_active'], 'page', $page);
 
             return $scammers->getCollection();
@@ -105,12 +111,12 @@ class FrontendScammerRepository implements ScammerRepositoryInterface {
     }
 
     private function findScammerByUrl(string $url, int $page, int $count): Collection {
-        $parsedUrl = trim($url);
-        $cacheKey = "scammers:profile:url:" . hash('md5', $parsedUrl) . ":$page:$count";
+        $urlObj = new URL($url);
+        $cacheKey = "scammers:profile:url:" . hash('md5', $urlObj) . ":$page:$count";
 
-        return Cache::remember($cacheKey, 3600, function () use ($parsedUrl, $page, $count) {
-            $scammers = Scammer::whereHas('profiles', function ($query) use ($parsedUrl) {
-                $query->where('social_media', 'LIKE', "%$parsedUrl%");
+        return Cache::remember($cacheKey, 3600, function () use ($urlObj, $page, $count) {
+            $scammers = Scammer::whereHas('profiles', function ($query) use ($urlObj) {
+                $query->where('contact', '=', $urlObj);
             })->paginate($count, ['name', 'iso_country', 'is_active'], 'page', $page);
 
             return $scammers->getCollection();

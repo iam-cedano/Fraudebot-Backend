@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\ScammerPaymentMethod\Enums\PaymentMethodType;
+use App\Domain\ScammerPaymentMethod\ScammerPaymentMethodEntity;
 use App\Domain\ScammerProfile\Enums\PlatformType;
 use App\Domain\ScammerProfile\ScammerProfileEntity;
 use App\Http\Controllers\Controller;
@@ -202,22 +204,50 @@ class ScammerController extends Controller
     public function createPaymentMethod(Request $request, Scammer $scammer)
     {
         $request->merge([
-            'reference' => str_replace(' ', '', $request->input('reference')),
+            'reference' => trim($request->input('reference')),
         ]);
 
         $validator = Validator::make($request->all(), [
             'reference' => 'required|string|max:255',
-            'is_active' => 'boolean',   
+            'payment_type' => 'required',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $paymentMethod = new ScammerPaymentMethod($request->all());
-        
-        $scammer->paymentMethods()->save($paymentMethod);
+        $inputPaymentType = $request->input('payment_type');
 
-        return response()->json($paymentMethod, 201);
+        $paymentMethodType = null;
+
+        if (is_numeric($inputPaymentType)) {
+            $paymentMethodType = PaymentMethodType::tryFrom($inputPaymentType) ?? throw new \InvalidArgumentException('Invalid payment method type');
+        } else {
+            $paymentMethodTypes = array_column(PaymentMethodType::cases(), 'value', 'name');
+
+            $paymentMethodNumber = $paymentMethodTypes[strtoupper($inputPaymentType)] ?? throw new \InvalidArgumentException('Invalid payment method type');
+        
+            $paymentMethodType = PaymentMethodType::from($paymentMethodNumber);
+        }
+
+        $paymentMethod = new ScammerPaymentMethodEntity(
+            id: null,
+            scammerId: $scammer['id'],
+            paymentType: $paymentMethodType,
+            reference: $request->input('reference'),
+            isActive: $request->input('is_active', true),
+        );
+
+
+        if ($scammer->paymentMethods()->where(['reference' => $paymentMethod->reference, 'payment_type' => $paymentMethod->paymentType->value])->exists()) {
+            return response()->json(['error' => 'Payment method with the same reference already exists for this scammer'], 422);
+        }
+
+        $paymentMethodModel = $scammer->paymentMethods()->create($paymentMethod->toArray());
+
+        $response = $paymentMethodModel->only(['id', 'scammer_id', 'reference', 'payment_type_name', 'is_active', 'created_at', 'updated_at']);
+
+        return response()->json($response, 201);
     }
 }
