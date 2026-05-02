@@ -12,4 +12,5 @@ enum PlatformType: int
     case CELLPHONE = 6;
     case TELEGRAM = 7;
     case INSTAGRAM = 8;
+    case URL = 9;
 }
