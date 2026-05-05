@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Domain\ScammerPaymentMethod\Enums\PaymentMethodType;
+use App\Domain\PaymentMethod\Enums\PaymentMethodType;
 use App\Domain\ScammerPaymentMethod\ScammerPaymentMethodEntity;
 use App\Domain\ScammerProfile\Enums\PlatformType;
 use App\Domain\ScammerProfile\ScammerProfileEntity;
@@ -27,22 +27,74 @@ class ScammerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'iso_country' => 'nullable|string|size:2',
             'is_active' => 'boolean',
-            'profiles' => 'sometimes|App\Models\ScammerProfile|array'
+            'profiles' => 'sometimes|array',
+            'profiles.*.name' => 'required_with:profiles|string|max:50',
+            'profiles.*.platform' => 'required_with:profiles',
+            'profiles.*.contact' => 'required_with:profiles|string|max:100',
+            'profiles.*.is_active' => 'boolean',
+            'paymentMethods' => 'sometimes|array',
+            'paymentMethods.*.reference' => 'required_with:paymentMethods|string|max:255',
+            'paymentMethods.*.payment_type' => 'required_with:paymentMethods',
+            'paymentMethods.*.is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $scammer = Scammer::create($request->all());
+        $scammer = Scammer::create($request->only(['name', 'iso_country', 'is_active']));
 
-        return response()->json($scammer, 201);
+        if ($request->has('profiles')) {
+            foreach ($request->input('profiles') as $profileData) {
+                $inputPlatform = $profileData['platform'];
+                if (is_numeric($inputPlatform)) {
+                    $platform = PlatformType::tryFrom((int)$inputPlatform) ?? throw new \InvalidArgumentException('Invalid platform type');
+                } else {
+                    $medias = array_column(PlatformType::cases(), 'value', 'name');
+                    $mediaNumber = $medias[strtoupper($inputPlatform)] ?? throw new \InvalidArgumentException('Invalid platform type');
+                    $platform = PlatformType::from($mediaNumber);
+                }
+
+                $profileEntity = new ScammerProfileEntity(
+                    id: null,
+                    scammerId: $scammer->id,
+                    name: $profileData['name'],
+                    platformType: $platform,
+                    contact: $profileData['contact'],
+                    isActive: $profileData['is_active'] ?? true,
+                );
+                $scammer->profiles()->create($profileEntity->toArray());
+            }
+        }
+
+        if ($request->has('paymentMethods')) {
+            foreach ($request->input('paymentMethods') as $pmData) {
+                $inputPaymentType = $pmData['payment_type'];
+                if (is_numeric($inputPaymentType)) {
+                    $paymentMethodType = PaymentMethodType::tryFrom((int)$inputPaymentType) ?? throw new \InvalidArgumentException('Invalid payment method type');
+                } else {
+                    $paymentMethodTypes = array_column(PaymentMethodType::cases(), 'value', 'name');
+                    $paymentMethodNumber = $paymentMethodTypes[strtoupper($inputPaymentType)] ?? throw new \InvalidArgumentException('Invalid payment method type');
+                    $paymentMethodType = PaymentMethodType::from($paymentMethodNumber);
+                }
+
+                $paymentMethodEntity = new ScammerPaymentMethodEntity(
+                    id: null,
+                    scammerId: $scammer->id,
+                    paymentType: $paymentMethodType,
+                    reference: trim($pmData['reference']),
+                    isActive: $pmData['is_active'] ?? true,
+                );
+                $scammer->paymentMethods()->create($paymentMethodEntity->toArray());
+            }
+        }
+
+        return response()->json($scammer->load(['profiles', 'paymentMethods']), 201);
     }
 
     /**

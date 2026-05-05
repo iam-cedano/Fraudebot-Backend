@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\ScammerPaymentMethod;
+namespace App\Domain\OrganizationPaymentMethod;
 
 use App\Domain\Entity;
 use App\Domain\PaymentMethod\Enums\PaymentMethodType;
@@ -9,11 +9,11 @@ use \InvalidArgumentException;
 use function is_bool;
 use function strlen;
 
-class ScammerPaymentMethodEntity extends Entity
+class OrganizationPaymentMethodEntity extends Entity
 {
     public function __construct(
         public readonly ?int $id,
-        public readonly int $scammerId,
+        public readonly int $organizationId,
         public string $reference,
         public PaymentMethodType $paymentType,
         public bool $isActive,
@@ -36,8 +36,8 @@ class ScammerPaymentMethodEntity extends Entity
             throw new InvalidArgumentException('Payment type cannot be empty');
         }
 
-        if (empty($this->scammerId)) {
-            throw new InvalidArgumentException('Scammer ID cannot be empty');
+        if (empty($this->organizationId)) {
+            throw new InvalidArgumentException('Organization ID cannot be empty');
         }
 
         if (strlen($this->reference) > 255) {
@@ -53,7 +53,7 @@ class ScammerPaymentMethodEntity extends Entity
     {
         return [
             'id' => $this->id,
-            'scammer_id' => $this->scammerId,
+            'organization_id' => $this->organizationId,
             'reference' => $this->reference,
             'payment_type' => $this->paymentType->value,
             'is_active' => $this->isActive,

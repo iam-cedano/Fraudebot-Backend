@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Public;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BasicScammerProfileResource extends JsonResource
+class BasicOrganizationResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'platform' => $this->platform_name,
             'name' => $this->name,
-            'contact' => $this->contact,
+            'description' => $this->description,
+            'is_active' => $this->is_active
         ];
     }
 }

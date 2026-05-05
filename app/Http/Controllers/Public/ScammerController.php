@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Public;
 
 use App\Domain\Scammer\ValueObjects\Clue;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BasicScammerPaymentMethodResource;
+use App\Http\Resources\Public\BasicScammerResource;
 use App\Models\Scammer;
 use App\Repositories\Scammer\ScammerRepositoryInterface;
-use App\Http\Resources\BasicScammerProfileResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 
 class ScammerController extends Controller
 {
@@ -20,40 +18,50 @@ class ScammerController extends Controller
      */
     public function index(Request $request)
     {
-        $clue = $request->input('q');
+        $scammers = collect([]);    
+        $relationships = [];
 
+        $clue = $request->input('q');
         $page = $request->input('p', 1);
+
         $count = 10;
 
-        $scammers = collect([]);
+        if ($request->query('withProfiles') == 'basic') {
+            $relationships[] = 'profiles';
+        }
+
+        if ($request->query('withPaymentMethods') == 'basic') {
+            $relationships[] = 'paymentMethods';
+        }
+
+        if ($request->query('withOrganizations') == 'basic') {
+            $relationships[] = 'organizations';
+        }
 
         if ($clue) {
             $clueObject = new Clue($clue);
-            $scammers = $this->scammerRepository->find($clueObject, $page, $count);
+            $scammers = $this->scammerRepository->find($clueObject, $page, $count, $relationships);
         } else {
-            $scammers = $this->scammerRepository->findAll($page, $count);
+            $scammers = $this->scammerRepository->findAll($page, $count, $relationships);
         }
 
-        return response()->json($scammers);
+        return BasicScammerResource::collection($scammers);
     }
 
     public function show(Request $request, Scammer $scammer)
     {
-        $response = [
-            'id' => $scammer->id,
-            'name' => $scammer->name,
-            'iso_country' => $scammer->iso_country,
-            'is_active' => $scammer->is_active,
-        ];
-
-        if ($request->query('withProfiles') ==   'basic') {
-            $response['profiles'] = BasicScammerProfileResource::collection($scammer->profiles);
+        if ($request->query('withProfiles') == 'basic') {
+            $scammer->load('profiles');
         }
 
         if ($request->query('withPaymentMethods') == 'basic') {
-            $response['payment_methods'] = BasicScammerPaymentMethodResource::collection($scammer->paymentMethods);
+            $scammer->load('paymentMethods');
         }
 
-        return response()->json($response);
+        if ($request->query('withOrganizations') == 'basic') {
+            $scammer->load('organizations');
+        }
+
+        return new BasicScammerResource($scammer);
     }
 }

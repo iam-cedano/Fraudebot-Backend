@@ -20,7 +20,7 @@ use App\Http\Controllers\Public;
 use App\Repositories\Organization\OrganizationRepositoryInterface;
 use App\Repositories\Scammer\ScammerRepositoryInterface;
 
-use App\Repositories\Organization\PublicOrganizationRepository;
+use App\Repositories\Organization\FrontendOrganizationRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->when(Public\OrganizationController::class)
         ->needs(OrganizationRepositoryInterface::class)
-        ->give(PublicOrganizationRepository::class);
+        ->give(FrontendOrganizationRepository::class);
 
         $this->app->when(Public\ScammerController::class)
         ->needs(ScammerRepositoryInterface::class)

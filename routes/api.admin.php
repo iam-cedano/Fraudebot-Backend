@@ -6,7 +6,8 @@ use App\Http\Controllers\Admin\ScammerController;
 
 Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::get('organizations/{organization}/scammers', [OrganizationController::class, 'getScammers']);
-    Route::post('organizations/{organization_id}/scammer/{scammer_id}', [OrganizationController::class, 'addScammer']);
+    Route::post('organizations/{organization}/scammer/{scammer}', [OrganizationController::class, 'addScammer']);
+    Route::post('organizations/{organization}/payment', [OrganizationController::class, 'createPaymentMethod']);
 
     Route::post('scammers/{scammer}/restore', [ScammerController::class, 'restore']);
     Route::post('organizations/{organization}/restore', [OrganizationController::class, 'restore']);
@@ -17,6 +18,8 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('scammers', ScammerController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('organizations', OrganizationController::class)->only(['store', 'update', 'destroy']);
+
+
 
     Route::post('/token', [DevelopmentController::class, 'token'])->withoutMiddleware('auth:sanctum');
 });

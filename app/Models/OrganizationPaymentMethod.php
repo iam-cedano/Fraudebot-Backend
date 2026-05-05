@@ -2,31 +2,30 @@
 
 namespace App\Models;
 
+use App\Domain\OrganizationPaymentMethod\OrganizationPaymentMethodEntity;
 use App\Domain\PaymentMethod\Enums\PaymentMethodType;
-use App\Domain\ScammerPaymentMethod\ScammerPaymentMethodEntity;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ScammerPaymentMethod extends Model
+class OrganizationPaymentMethod extends Model
 {
-    use HasFactory, SoftDeletes;
+    use SoftDeletes;
 
     protected $fillable = [
-        'scammer_id',
+        'organization_id',
         'reference',
         'payment_type',
         'is_active'
     ];
 
-    protected $appends = [
-        'payment_type_name',
-    ];
-
     protected $casts = [
         'payment_type' => PaymentMethodType::class,
         'is_active' => 'boolean',
+    ];
+
+    protected $appends = [
+        'payment_type_name',
     ];
 
     protected function paymentTypeName(): Attribute
@@ -35,22 +34,12 @@ class ScammerPaymentMethod extends Model
             get: fn () => ucfirst(strtolower($this->payment_type->name)),
         );
     }
-    /**
-     * Get the scammer that owns the payment method.
-     */
-    public function scammer()
-    {
-        return $this->belongsTo(Scammer::class);
-    }
 
-    /**
-     * Convert the model to a domain entity.
-     */
-    public function toEntity(): ScammerPaymentMethodEntity
+    public function toEntity(): OrganizationPaymentMethodEntity
     {
-        return new ScammerPaymentMethodEntity(
+        return new OrganizationPaymentMethodEntity(
             id: $this->id,
-            scammerId: $this->scammer_id,
+            organizationId: $this->organization_id,
             reference: $this->reference,
             paymentType: $this->payment_type,
             isActive: $this->is_active,

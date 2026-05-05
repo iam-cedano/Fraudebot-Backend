@@ -2,7 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\OrganizationPaymentMethod\OrganizationPaymentMethodEntity;
+use App\Domain\PaymentMethod\PaymentMethodEntity;
+use App\Domain\PaymentMethod\ValueObjects\Reference;
+use App\Domain\PaymentMethod\Enums\PaymentMethodType;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\BasicOrganizationResource;
+use App\Http\Resources\Admin\BasicPaymentMethodResource;
+use App\Http\Resources\Admin\BasicScammerResource;
 use App\Models\Organization;
 use App\Models\Scammer;
 use Illuminate\Http\Request;
@@ -35,7 +42,9 @@ class OrganizationController extends Controller
 
         $organization = Organization::create($request->all());
 
-        return response()->json($organization, 201);
+        $resource = new BasicOrganizationResource($organization);
+
+        return response()->json($resource, 201);
     }
 
     /**
@@ -46,15 +55,7 @@ class OrganizationController extends Controller
         $organizationData = $organization->toArray();
 
         if (request()->query('withScammers') === 'basic') {
-            $organizationData['scammers'] = $organization
-                ->scammers()
-                ->orderBy('scammers.id')
-                ->get()
-                ->map(fn (Scammer $scammer) => [
-                    'id' => $scammer->id,
-                    'name' => $scammer->name,
-                ])
-                ->all();
+            $organizationData['scammers'] = BasicScammerResource::collection($organization->scammers);
         }
 
         return response()->json($organizationData);
@@ -77,6 +78,7 @@ class OrganizationController extends Controller
 
         $organization->update($request->all());
 
+
         return response()->json($organization);
     }
 
@@ -98,20 +100,52 @@ class OrganizationController extends Controller
         $organization = Organization::onlyTrashed()->findOrFail($id);
         $organization->restore();
 
-        return response()->json($organization);
+        $resource = new BasicOrganizationResource($organization);
+
+        return response()->json($resource);
     }
 
     /**
      * Add a scammer to the given organization.
      */
-    public function addScammer(int $organizationId, int $scammerId)
+    public function addScammer(Organization $organization, Scammer $scammer)
     {
-        $organization = Organization::findOrFail($organizationId);
-        $scammer = Scammer::findOrFail($scammerId);
-
         $organization->scammers()->syncWithoutDetaching([$scammer->id]);
 
         return response()->json(['message' => 'Scammer added successfully'], 201);
+    }
+
+    public function createPaymentMethod(Request $request, Organization $organization)
+    {
+        $validator = Validator::make($request->all(), [
+            'reference' => 'required|string|max:255',
+            'payment_type' => 'required',
+            'is_active' => 'boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $inputPaymentType = $request->input('payment_type');
+
+        $paymentMethodType = new PaymentMethodEntity($inputPaymentType);
+
+        $reference = new Reference($request->input('reference'));
+
+        $paymentMethodEntity = new OrganizationPaymentMethodEntity(
+            id: null,
+            organizationId: $organization->id,
+            reference: $reference->getValue(),
+            paymentType: $paymentMethodType->getValue(),
+            isActive: $request->input('is_active', true),
+        );    
+    
+        $paymentMethod = $organization->paymentMethods()->create($paymentMethodEntity->toArray());
+
+        $resource = new BasicPaymentMethodResource($paymentMethod);
+
+        return response()->json($resource, 201);
     }
 
     /**

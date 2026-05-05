@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domain\OgAccessPoint;
+namespace App\Domain\OrganizationAccessPoint;
 
 use App\Domain\Entity;
 
-class OgAccessPointEntity extends Entity
+class OrganizationAccessPointEntity extends Entity
 {
     public function __construct(
         public readonly ?int $id,

@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Domain\OgAccessPoint\OgAccessPointEntity;
+use App\Domain\OrganizationAccessPoint\OrganizationAccessPointEntity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class OgAccessPoint extends Model
+class OrganizationAccessPoint extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -29,9 +29,9 @@ class OgAccessPoint extends Model
     /**
      * Convert the model to a domain entity.
      */
-    public function toEntity(): OgAccessPointEntity
+    public function toEntity(): OrganizationAccessPointEntity
     {
-        return new OgAccessPointEntity(
+        return new OrganizationAccessPointEntity(
             id: $this->id,
             organizationId: $this->organization_id,
             PlatformType: $this->PlatformType,

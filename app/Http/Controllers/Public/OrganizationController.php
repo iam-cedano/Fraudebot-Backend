@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Public\BasicOrganizationResource;
+use App\Http\Resources\Public\BasicPaymentMethodResource;
+use App\Http\Resources\Public\BasicScammerResource;
 use App\Models\Organization;
 use App\Models\Scammer;
 use App\Repositories\Organization\OrganizationRepositoryInterface;
+use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
 {
@@ -16,29 +20,34 @@ class OrganizationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json($this->organizationRepository->getActiveOrganizations());
+        $relationships = [];
+
+        if ($request->query('withScammers') === 'basic') {
+            $relationships[] = 'scammers';
+        }
+
+        if ($request->query('withPaymentMethods') === 'basic') {
+            $relationships[] = 'paymentMethods';
+        }
+
+        return response()->json($this->organizationRepository->getActiveOrganizations($relationships));
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Organization $organization)
+    public function show(Request $request, Organization $organization)
     {
-        if (!$organization->is_active) {
-            abort(404);
+        $organizationData = (new BasicOrganizationResource($organization))->toArray($request);
+
+        if ($request->query('withScammers') === 'basic') {
+            $organizationData['scammers'] = BasicScammerResource::collection($organization->scammers);
         }
 
-        $organizationData = $organization->only(['id', 'name', 'description', 'is_active']);
-
-        if (request()->query('withScammers') === 'basic') {
-            $organizationData['scammers'] = $this->organizationRepository->getActiveScammers($organization)
-                ->map(fn (Scammer $scammer) => [
-                    'id' => $scammer->id,
-                    'name' => $scammer->name,
-                ])
-                ->all();
+        if ($request->query('withPaymentMethods') === 'basic') {
+            $organizationData['paymentMethods'] = BasicPaymentMethodResource::collection($organization->paymentMethods);
         }
 
         return response()->json($organizationData);

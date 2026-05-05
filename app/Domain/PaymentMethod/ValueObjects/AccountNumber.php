@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\ScammerPaymentMethod\ValueObjects;
+namespace App\Domain\PaymentMethod\ValueObjects;
 
 use function strlen;
 

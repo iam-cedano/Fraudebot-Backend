@@ -34,7 +34,7 @@ class Organization extends Model
      */
     public function accessPoints()
     {
-        return $this->hasMany(OgAccessPoint::class);
+        return $this->hasMany(OrganizationAccessPoint::class);
     }
 
     /**
@@ -43,6 +43,14 @@ class Organization extends Model
     public function reports()
     {
         return $this->hasMany(Report::class);
+    }
+
+    /**
+     * Get the payment methods associated with the organization.
+     */
+    public function paymentMethods()
+    {
+        return $this->hasMany(OrganizationPaymentMethod::class);
     }
 
     /**
