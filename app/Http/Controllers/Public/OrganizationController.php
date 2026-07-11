@@ -7,7 +7,6 @@ use App\Http\Resources\Public\BasicOrganizationResource;
 use App\Http\Resources\Public\BasicPaymentMethodResource;
 use App\Http\Resources\Public\BasicScammerResource;
 use App\Models\Organization;
-use App\Models\Scammer;
 use App\Repositories\Organization\OrganizationRepositoryInterface;
 use Illuminate\Http\Request;
 
@@ -15,7 +14,8 @@ class OrganizationController extends Controller
 {
     public function __construct(
         private OrganizationRepositoryInterface $organizationRepository
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of the resource.

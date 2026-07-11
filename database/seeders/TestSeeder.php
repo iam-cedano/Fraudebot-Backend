@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class TestSeeder extends Seeder
 {
     private array $scammers;
-    private array $ogAccessPoints;
+    private array $organizationAccessPoints;
     private array $organizations;
     public function __construct()
     {
@@ -35,15 +35,15 @@ class TestSeeder extends Seeder
                 ]
             ]
         ];
-        $this->ogAccessPoints = [
+        $this->organizationAccessPoints = [
             'Ecohuerta' => [
                 [
-                    'platform' => 'website',
+                    'PlatformType' => 'website',
                     'contact' => 'https://example.com',
                     'is_active' => true
                 ],
                 [
-                    'platform' => 'whatsapp-group',
+                    'PlatformType' => 'whatsapp-group',
                     'contact' => '',
                     'is_active' => true
                 ]
@@ -52,7 +52,7 @@ class TestSeeder extends Seeder
         $this->organizations = [
             'Ecohuerta' => [
                 'name' => 'Ecohuerta',
-                'description' => 'Ecohuertas is a platform that runs a Ponzi scheme',
+                'description' => 'Ecohuertas is a PlatformType that runs a Ponzi scheme',
                 'is_active' => true,
             ]
         ];
@@ -63,8 +63,8 @@ class TestSeeder extends Seeder
         foreach ($this->organizations as $key => $data) {
             $org = Organization::create($data);
             
-            if (isset($this->ogAccessPoints[$key])) {
-                foreach ($this->ogAccessPoints[$key] as $accessPoint) {
+            if (isset($this->organizationAccessPoints[$key])) {
+                foreach ($this->organizationAccessPoints[$key] as $accessPoint) {
                     $org->accessPoints()->create($accessPoint);
                 }
             }
