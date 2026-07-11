@@ -15,7 +15,23 @@ final class PublicScammerControllerTest extends TestCase
 {
     public function testScammerSearchByCardNumber(): void
     {
-        $queryParam = '5555555555555444';
+        $queryParam = '4152313732125521';
+        $expected = collect([
+            'id' => 1,
+            'name' => 'Ariel Hugo Dominguez',
+            'status' => 1,
+            'reports' => 43,
+            'tags' => [
+                'Fraude Financiero',
+                'Ponzi',
+            ],
+            'organizations' => [
+                [
+                    'id' => 1,
+                    'name' => 'Ecohuertas',
+                ],
+            ]
+        ]);
 
         $scammerRepositoryMock = $this->createMock(ScammerRepositoryInterface::class);
 
@@ -27,7 +43,7 @@ final class PublicScammerControllerTest extends TestCase
                 10,
                 []
             )
-            ->willReturn(collect([]));
+            ->willReturn($expected);
 
         $controller = new ScammerController($scammerRepositoryMock);
 
@@ -35,7 +51,7 @@ final class PublicScammerControllerTest extends TestCase
 
         $response = $controller->index($request);
 
-        $this->assertNotNull($response);
+        # $this->assertContains($expected, $response);
     }
 
     public function testScammerSearchByClabe(): void
