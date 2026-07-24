@@ -15,6 +15,7 @@ class Report extends Model
         'product_id',
         'user_id',
         'organization_id',
+        'scammer_id',
         'title',
         'description',
         'was_sucessful',
@@ -46,6 +47,14 @@ class Report extends Model
     }
 
     /**
+     * Get the scammer that owns the report.
+     */
+    public function scammer()
+    {
+        return $this->belongsTo(Scammer::class);
+    }
+
+    /**
      * Convert the model to a domain entity.
      */
     public function toEntity(): ReportEntity
@@ -55,9 +64,10 @@ class Report extends Model
             productId: $this->product_id,
             userId: $this->user_id,
             organizationId: $this->organization_id,
+            scammerId: $this->scammer_id,
             title: $this->title,
             description: $this->description,
-            wasSuccessful: $this->was_sucessful,
+            wasSucessful: $this->was_sucessful,
             isActive: $this->is_active,
         );
     }

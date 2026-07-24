@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Scammer\ScammerEntity;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Scammer extends Model
 {
     use HasFactory, SoftDeletes;
+
     protected $fillable = [
         'name',
         'iso_country',
@@ -19,6 +21,17 @@ class Scammer extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    protected $appends = [
+        'reportCount',
+    ];
+
+    protected function reportCount(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->reports()->count(),
+        );
+    }
 
     /**
      * The "booted" method of the model.
@@ -51,7 +64,7 @@ class Scammer extends Model
      */
     public function paymentMethods()
     {
-        return $this->hasMany(ScammerPaymentMethod::class);
+        return $this->hasMany(PaymentMethod::class);
     }
 
     /**
@@ -60,6 +73,14 @@ class Scammer extends Model
     public function organizations()
     {
         return $this->belongsToMany(Organization::class, 'scammers_organizations');
+    }
+
+    /**
+     * Get the reports associated with the scammer.
+     */
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
     }
 
     /**

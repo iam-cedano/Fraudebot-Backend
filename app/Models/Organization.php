@@ -50,7 +50,7 @@ class Organization extends Model
      */
     public function paymentMethods()
     {
-        return $this->hasMany(OrganizationPaymentMethod::class);
+        return $this->hasMany(PaymentMethod::class);
     }
 
     /**

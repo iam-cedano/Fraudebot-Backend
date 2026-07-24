@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('organization_id')->nullable()->constrained('organizations')->onDelete('set null');
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->foreignId('organization_id')->nullable()->constrained('organizations');
+            $table->foreignId('scammer_id')->nullable()->constrained('scammers');
             $table->string('title', 50);
             $table->text('description')->nullable();
             $table->boolean('was_sucessful')->default(false);
