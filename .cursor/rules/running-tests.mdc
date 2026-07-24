@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Running Backend Tests
 
-PHPUnit **must run inside Docker** (PHP 8.3). Do not run `./vendor/bin/phpunit` on the host — host PHP is 8.2 and will fail.
+PHPUnit **must run inside Docker** (PHP 8.3).
 
 ## Prerequisites
 
