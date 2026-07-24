@@ -8,7 +8,6 @@ use App\Domain\ScammerProfile\Enums\PlatformType;
 use App\Domain\ScammerProfile\ScammerProfileEntity;
 use App\Http\Controllers\Controller;
 use App\Models\Scammer;
-use App\Models\ScammerPaymentMethod;
 use App\Models\ScammerProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -298,7 +297,8 @@ class ScammerController extends Controller
 
         $paymentMethodModel = $scammer->paymentMethods()->create($paymentMethod->toArray());
 
-        $response = $paymentMethodModel->only(['id', 'scammer_id', 'reference', 'payment_type_name', 'is_active', 'created_at', 'updated_at']);
+        $response = $paymentMethodModel->only(['id', 'scammer_id', 'reference', 'payment_type_name', 'is_active', 'created_at']);
+        $response['updated_at'] = $paymentMethodModel->modified_at;
 
         return response()->json($response, 201);
     }

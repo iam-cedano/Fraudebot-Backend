@@ -14,8 +14,7 @@ class BasicScammerResource extends JsonResource
             'name' => $this->name,
             'iso_country' => $this->iso_country,
             'is_active' => $this->is_active,
-            'profiles' => BasicScammerProfileResource::collection($this->whenLoaded('profiles')),
-            'payment_methods' => BasicScammerPaymentMethodResource::collection($this->whenLoaded('paymentMethods')),
+            'reports' => $this->reports,
             'organizations' => BasicOrganizationResource::collection($this->whenLoaded('organizations')),
         ];
     }

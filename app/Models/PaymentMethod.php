@@ -2,21 +2,24 @@
 
 namespace App\Models;
 
-use App\Domain\OrganizationPaymentMethod\OrganizationPaymentMethodEntity;
 use App\Domain\PaymentMethod\Enums\PaymentMethodType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class OrganizationPaymentMethod extends Model
+class PaymentMethod extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
+
+    public const UPDATED_AT = 'modified_at';
 
     protected $fillable = [
         'organization_id',
-        'reference',
+        'scammer_id',
         'payment_type',
-        'is_active'
+        'reference',
+        'is_active',
     ];
 
     protected $casts = [
@@ -35,14 +38,13 @@ class OrganizationPaymentMethod extends Model
         );
     }
 
-    public function toEntity(): OrganizationPaymentMethodEntity
+    public function organization()
     {
-        return new OrganizationPaymentMethodEntity(
-            id: $this->id,
-            organizationId: $this->organization_id,
-            reference: $this->reference,
-            paymentType: $this->payment_type,
-            isActive: $this->is_active,
-        );
+        return $this->belongsTo(Organization::class);
+    }
+
+    public function scammer()
+    {
+        return $this->belongsTo(Scammer::class);
     }
 }

@@ -2,9 +2,9 @@
 
 namespace Tests\Unit;
 
-use App\Domain\Scammer\ScammerEntity;
 use App\Domain\Scammer\ValueObjects\Clue;
 use App\Http\Controllers\Public\ScammerController;
+use App\Models\Scammer;
 use App\Repositories\Scammer\ScammerRepositoryInterface;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -16,21 +16,13 @@ final class PublicScammerControllerTest extends TestCase
     public function testScammerSearchByCardNumber(): void
     {
         $queryParam = '4152313732125521';
-        $expected = collect([
+
+        $scammer = new Scammer();
+        $scammer->forceFill([
             'id' => 1,
             'name' => 'Ariel Hugo Dominguez',
-            'status' => 1,
-            'reports' => 43,
-            'tags' => [
-                'Fraude Financiero',
-                'Ponzi',
-            ],
-            'organizations' => [
-                [
-                    'id' => 1,
-                    'name' => 'Ecohuertas',
-                ],
-            ]
+            'iso_country' => 'MX',
+            'is_active' => true,
         ]);
 
         $scammerRepositoryMock = $this->createMock(ScammerRepositoryInterface::class);
@@ -38,12 +30,12 @@ final class PublicScammerControllerTest extends TestCase
         $scammerRepositoryMock->expects($this->once())
             ->method('find')
             ->with(
-                $this->callback(fn(Clue $clue) => $clue->getValue() === $queryParam),
+                $this->callback(fn (Clue $clue) => $clue->getValue() === $queryParam),
                 1,
                 10,
                 []
             )
-            ->willReturn($expected);
+            ->willReturn(collect([$scammer]));
 
         $controller = new ScammerController($scammerRepositoryMock);
 
@@ -51,7 +43,15 @@ final class PublicScammerControllerTest extends TestCase
 
         $response = $controller->index($request);
 
-        # $this->assertContains($expected, $response);
+        $this->assertEquals(1, $response->count());
+        $this->assertEquals([
+            [
+                'id' => 1,
+                'name' => 'Ariel Hugo Dominguez',
+                'iso_country' => 'MX',
+                'is_active' => true,
+            ],
+        ], $response->resolve($request));
     }
 
     public function testScammerSearchByClabe(): void
@@ -63,7 +63,7 @@ final class PublicScammerControllerTest extends TestCase
         $scammerRepositoryMock->expects($this->once())
             ->method('find')
             ->with(
-                $this->callback(fn(Clue $clue) => $clue->getValue() === $queryParam),
+                $this->callback(fn (Clue $clue) => $clue->getValue() === $queryParam),
                 1,
                 10,
                 []
@@ -76,6 +76,7 @@ final class PublicScammerControllerTest extends TestCase
 
         $response = $controller->index($request);
 
-        $this->assertNotNull($response);
+        $this->assertEquals(0, $response->count());
+        $this->assertSame([], $response->resolve($request));
     }
 }

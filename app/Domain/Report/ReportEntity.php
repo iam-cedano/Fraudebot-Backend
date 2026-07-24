@@ -12,8 +12,9 @@ class ReportEntity extends Entity
         public readonly int $userId,
         public readonly ?int $organizationId,
         public string $title,
-        public string $description,
-        public bool $wasSuccessful,
+        public string $description, 
+        public int $scammerId,
+        public bool $wasSucessful,
         public bool $isActive,
     ) {
         parent::__construct();
@@ -36,9 +37,10 @@ class ReportEntity extends Entity
             'product_id' => $this->productId,
             'user_id' => $this->userId,
             'organization_id' => $this->organizationId,
+            'scammer_id' => $this->scammerId,
             'title' => $this->title,
             'description' => $this->description,
-            'was_successful' => $this->wasSuccessful,
+            'was_sucessful' => $this->wasSucessful,
             'is_active' => $this->isActive,
         ];
     }

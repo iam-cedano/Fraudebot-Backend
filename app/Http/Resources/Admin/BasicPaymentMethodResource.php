@@ -16,7 +16,7 @@ class BasicPaymentMethodResource extends JsonResource
             'payment_type_name' => $this->payment_type_name,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'updated_at' => $this->modified_at,
             'deleted_at' => $this->deleted_at,
         ];
     }
