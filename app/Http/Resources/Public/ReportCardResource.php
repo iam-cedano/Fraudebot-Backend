@@ -5,7 +5,7 @@ namespace App\Http\Resources\Public;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BasicScammerResource extends JsonResource
+class ReportCardResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -15,7 +15,9 @@ class BasicScammerResource extends JsonResource
             'iso_country' => $this->iso_country,
             'is_active' => $this->is_active,
             'reports' => $this->reports,
-            'organizations' => BasicOrganizationResource::collection($this->whenLoaded('organizations')),
+            'organizations' => $this->organizations,
+            'products' => $this->products,
+            'type' => $this->type,
         ];
     }
 }

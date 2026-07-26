@@ -1,0 +1,168 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Domain\Scammer\Enums\ClueType;
+use App\Domain\Scammer\ValueObjects\Clue;
+use App\Http\Controllers\Public\ReportController;
+use App\Repositories\Search\SearchRepositoryInterface;
+use Illuminate\Http\Request;
+use Tests\TestCase;
+
+use function count;
+
+class PublicReportControllerTest extends TestCase
+{
+    public function testReportSearchByClabe(): void
+    {
+        $this->assertReportSearch(
+            '0123450123456789',
+            $this->defaultReportData(),
+        );
+    }
+
+    public function testReportSearchByCardNumber(): void
+    {
+        $this->assertReportSearch(
+            '4152313732125521',
+            $this->defaultReportData(),
+        );
+    }
+
+    public function testReportSearchByAccountNumber(): void
+    {
+        $this->assertReportSearch(
+            '0123456789',
+            $this->defaultReportData(),
+        );
+    }
+
+    public function testReportSearchByEmail(): void
+    {
+        $this->assertReportSearch(
+            'test@example.com',
+            $this->defaultReportData(),
+        );
+    }
+
+    public function testReportSearchByPhone(): void
+    {
+        $this->assertReportSearch(
+            '525512345678',
+            $this->defaultReportData(),
+        );
+    }
+
+    public function testReportSearchByUrl(): void
+    {
+        $this->assertReportSearch(
+            'https://example.com',
+            $this->defaultReportData(),
+        );
+    }
+
+    public function testReportSearchByDomain(): void
+    {
+        $this->assertReportSearch(
+            'example.com',
+            $this->defaultReportData(),
+        );
+    }
+
+    public function testReportSearchByIpAddress(): void
+    {
+        $this->assertReportSearch(
+            '192.168.1.1',
+            $this->defaultReportData(),
+        );
+    }
+
+    public function testReportSearchByEmptyQuery(): void
+    {
+        $this->assertReportSearch('', []);
+    }
+
+    public function testReportSearchByNullQuery(): void
+    {
+        $this->assertReportSearch(null, []);
+    }
+
+    public function testReportSearchByGeneralQuery(): void
+    {
+        $this->assertReportSearch(
+            'John Doe',
+            [$this->defaultReportData()[0]],
+        );
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function defaultReportData(): array
+    {
+        return [
+            [
+                'id' => 1,
+                'name' => 'John Doe',
+                'reports' => 13,
+                'iso_country' => 'MX',
+                'products' => ['Invertions', 'Crypto', 'NFT'],
+                'organizations' => ['Ecohuertas'],
+                'type' => 'scammer',
+                'is_active' => true,
+            ],
+            [
+                'id' => 2,
+                'name' => 'Ecohuertas',
+                'reports' => 35,
+                'iso_country' => 'MX',
+                'products' => ['Crypto'],
+                'organizations' => [],
+                'type' => 'organization',
+                'is_active' => true,
+            ],
+        ];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $expectedData
+     */
+    private function assertReportSearch(
+        string|null $query,
+        array $expectedData,
+        int $page = 1,
+        int $count = 10,
+    ): void {
+        $searchRepositoryMock = $this->createMock(SearchRepositoryInterface::class);
+
+        $clueMatcher = $query === null
+            ? $this->callback(fn(Clue $clue) => $clue->getType() === ClueType::Nothing)
+            : $this->callback(fn(Clue $clue) => $clue->getValue() === $query);
+
+        $searchRepositoryMock->expects($this->once())
+            ->method('find')
+            ->with(
+                $clueMatcher,
+                $this->equalTo($page),
+                $this->equalTo($count),
+            )
+            ->willReturn(collect(array_map(
+                static fn(array $item): object => (object) $item,
+                $expectedData,
+            )));
+
+        $requestParams = ['p' => $page, 'c' => $count];
+        if ($query !== null) {
+            $requestParams['q'] = $query;
+        }
+
+        $request = Request::create('/', 'GET', $requestParams);
+        $response = (new ReportController($searchRepositoryMock))->index($request);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($expectedData, $response->getData(true)['data']);
+        $this->assertEquals($page, $response->getData(true)['page']);
+        $this->assertEquals($count, $response->getData(true)['count']);
+        $this->assertEquals(count($expectedData), $response->getData(true)['total']);
+    }
+}

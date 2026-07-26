@@ -13,4 +13,5 @@ enum ClueType
     case AccountNumber;
     case Username;
     case General;
+    case Nothing;
 }

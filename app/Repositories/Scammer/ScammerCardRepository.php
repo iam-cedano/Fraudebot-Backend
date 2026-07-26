@@ -13,7 +13,7 @@ use App\Models\Scammer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
-class FrontendScammerRepository implements ScammerRepositoryInterface
+class ScammerCardRepository implements ScammerCardRepositoryInterface
 {
     private function getEagerLoads(array $relationships): array
     {
@@ -25,7 +25,7 @@ class FrontendScammerRepository implements ScammerRepositoryInterface
                 };
             } elseif ($relationship === 'paymentMethods') {
                 $eagerLoads['paymentMethods'] = function ($q) {
-                    $q->select('id', 'scammer_id', 'payment_type', 'reference');
+                    $q->select('id', 'user_id', 'organization_id', 'scammer_id', 'payment_type', 'reference', 'is_active');
                 };
             } elseif ($relationship === 'organizations') {
                 $eagerLoads['organizations'] = function ($q) {
@@ -36,7 +36,7 @@ class FrontendScammerRepository implements ScammerRepositoryInterface
         return $eagerLoads;
     }
 
-    public function findAll(int $page, int $count, $relationships = []): Collection
+    public function findAll(int $page, int $count, array $relationships = []): Collection
     {
         $cacheKey = "scammers:all:$page:$count:" . implode(',', $relationships);
 
@@ -57,7 +57,6 @@ class FrontendScammerRepository implements ScammerRepositoryInterface
             );
 
             $scammers = $paginator->getCollection();
-
 
             return $scammers;
         });
@@ -185,10 +184,7 @@ class FrontendScammerRepository implements ScammerRepositoryInterface
                 $query->where('contact', '=', $emailObj);
             });
 
-            $eagerLoads = $this->getEagerLoads($relationships);
-            if (!empty($eagerLoads)) {
-                $query->with($eagerLoads);
-            }
+            $eagerLoads = $this->getEagerLoads(['organizations']);
 
             $scammers = $query->paginate($count, ['id', 'name', 'iso_country', 'is_active'], 'page', $page);
 

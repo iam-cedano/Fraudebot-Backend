@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\BasicOrganizationResource;
 use App\Http\Resources\Public\BasicPaymentMethodResource;
-use App\Http\Resources\Public\BasicScammerResource;
+use App\Http\Resources\Public\ScammerCardResource;
 use App\Models\Organization;
 use App\Repositories\Organization\OrganizationRepositoryInterface;
 use Illuminate\Http\Request;
@@ -43,7 +43,7 @@ class OrganizationController extends Controller
         $organizationData = (new BasicOrganizationResource($organization))->toArray($request);
 
         if ($request->query('withScammers') === 'basic') {
-            $organizationData['scammers'] = BasicScammerResource::collection($organization->scammers);
+            $organizationData['scammers'] = ScammerCardResource::collection($organization->scammers);
         }
 
         if ($request->query('withPaymentMethods') === 'basic') {
