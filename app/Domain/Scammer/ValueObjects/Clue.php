@@ -6,7 +6,7 @@ use App\Domain\Scammer\Enums\ClueType;
 
 class Clue
 {
-    public function __construct(private readonly string $value) {}
+    public function __construct(private readonly string|null $value) {}
 
     public function getValue(): string
     {
@@ -15,6 +15,11 @@ class Clue
 
     public function getType(): ClueType
     {
+
+        if ($this->value === '' || $this->value === null) {
+            return ClueType::Nothing;
+        }
+
         if (filter_var($this->value, FILTER_VALIDATE_EMAIL)) {
             return ClueType::Email;
         }
