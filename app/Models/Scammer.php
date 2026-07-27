@@ -29,15 +29,10 @@ class Scammer extends Model
     protected function reportCount(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->reports()->count(),
+            get: fn() => $this->reports()->count(),
         );
     }
 
-    /**
-     * The "booted" method of the model.
-     *
-     * @return void
-     */
     protected static function booted()
     {
         static::deleted(function ($scammer) {
@@ -72,7 +67,7 @@ class Scammer extends Model
      */
     public function organizations()
     {
-        return $this->belongsToMany(Organization::class, 'scammers_organizations');
+        return $this->belongsToMany(Organization::class, 'scammers_organizations', 'scammer_id', 'organization_id');
     }
 
     /**
