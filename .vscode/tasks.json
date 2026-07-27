@@ -89,7 +89,7 @@
     {
       "label": "[Backend] Seed Database with Mock Data",
       "type": "shell",
-      "command": "docker compose exec -T -e SEED_SCAMMERS=${input:seedScammers} -e SEED_CONTACTS=${input:seedContacts} -e SEED_ORGANIZATIONS=${input:seedOrganizations} -e SEED_REPORTS=${input:seedReports} -w /var/www/backend backend php artisan db:seed --class=TestSeeder",
+      "command": "docker compose exec -T -e SEED_SCAMMERS=${input:seedScammers} -e SEED_CONTACTS=${input:seedContacts} -e SEED_ORGANIZATIONS=${input:seedOrganizations} -e SEED_REPORTS=${input:seedReports} -e SEED_USERS=${input:seedUsers} -e SEED_PRODUCTS=${input:seedProducts} -w /var/www/backend backend php artisan db:seed --class=TestSeeder",
       "options": {
         "cwd": "${workspaceFolder}/../docker/"
       },
@@ -137,6 +137,18 @@
       "type": "promptString",
       "description": "SEED_REPORTS — reports per scammer/organization",
       "default": "2"
+    },
+    {
+      "id": "seedUsers",
+      "type": "promptString",
+      "description": "SEED_USERS — number of users to create",
+      "default": "1"
+    },
+    {
+      "id": "seedProducts",
+      "type": "promptString",
+      "description": "SEED_PRODUCTS — number of products to create",
+      "default": "1"
     }
   ]
 }

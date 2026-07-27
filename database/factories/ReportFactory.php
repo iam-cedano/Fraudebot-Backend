@@ -3,8 +3,10 @@
 namespace Database\Factories;
 
 use App\Models\Organization;
+use App\Models\Product;
 use App\Models\Report;
 use App\Models\Scammer;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,8 +19,8 @@ class ReportFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_id' => null,
-            'user_id' => null,
+            'product_id' => Product::factory(),
+            'user_id' => User::factory(),
             'organization_id' => Organization::factory(),
             'scammer_id' => Scammer::factory(),
             'title' => $this->faker->sentence(3),
