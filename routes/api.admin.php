@@ -12,8 +12,8 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::post('scammers/{scammer}/restore', [ScammerController::class, 'restore']);
     Route::post('organizations/{organization}/restore', [OrganizationController::class, 'restore']);
 
-    Route::put('scammers/profile/{profile}', [ScammerController::class, 'updateProfile']);
-    Route::post('scammers/{scammer}/profiles', [ScammerController::class, 'createProfile']);
+    Route::put('scammers/contact/{contact}', [ScammerController::class, 'updateContact']);
+    Route::post('scammers/{scammer}/contacts', [ScammerController::class, 'createContact']);
     Route::post('scammers/{scammer}/payment', [ScammerController::class, 'createPaymentMethod']);
 
     Route::apiResource('scammers', ScammerController::class)->only(['store', 'update', 'destroy']);

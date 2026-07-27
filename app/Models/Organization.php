@@ -30,11 +30,11 @@ class Organization extends Model
     }
 
     /**
-     * Get the access points associated with the organization.
+     * Get the contacts associated with the organization.
      */
-    public function accessPoints()
+    public function contacts()
     {
-        return $this->hasMany(OrganizationAccessPoint::class);
+        return $this->hasMany(Contact::class);
     }
 
     /**

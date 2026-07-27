@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\ScammerProfile\Enums;
+namespace App\Domain\Contact\Enums;
 
 enum PlatformType: int
 {

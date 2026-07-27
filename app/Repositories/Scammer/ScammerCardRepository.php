@@ -6,9 +6,9 @@ use App\Domain\Scammer\Enums\ClueType;
 use App\Domain\PaymentMethod\ValueObjects\AccountNumber;
 use App\Domain\PaymentMethod\ValueObjects\CardNumber;
 use App\Domain\PaymentMethod\ValueObjects\Clabe;
-use App\Domain\ScammerProfile\ValueObjects\Email;
-use App\Domain\ScammerProfile\ValueObjects\PhoneNumber;
-use App\Domain\ScammerProfile\ValueObjects\URL;
+use App\Domain\Contact\ValueObjects\Email;
+use App\Domain\Contact\ValueObjects\PhoneNumber;
+use App\Domain\Contact\ValueObjects\URL;
 use App\Models\Scammer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -19,8 +19,8 @@ class ScammerCardRepository implements ScammerCardRepositoryInterface
     {
         $eagerLoads = [];
         foreach ($relationships as $relationship) {
-            if ($relationship === 'profiles') {
-                $eagerLoads['profiles'] = function ($q) {
+            if ($relationship === 'contacts') {
+                $eagerLoads['contacts'] = function ($q) {
                     $q->select('id', 'scammer_id', 'name', 'platform', 'contact');
                 };
             } elseif ($relationship === 'paymentMethods') {
@@ -180,7 +180,7 @@ class ScammerCardRepository implements ScammerCardRepositoryInterface
         $cacheKey = "scammers:pm:email:" . hash('md5', $emailObj) . ":$page:$count:" . implode(',', $relationships);
 
         return Cache::remember($cacheKey, 3600, function () use ($emailObj, $page, $count, $relationships) {
-            $query = Scammer::whereHas('profiles', function ($query) use ($emailObj) {
+            $query = Scammer::whereHas('contacts', function ($query) use ($emailObj) {
                 $query->where('contact', '=', $emailObj);
             });
 
@@ -227,7 +227,7 @@ class ScammerCardRepository implements ScammerCardRepositoryInterface
         $cacheKey = "scammers:profile:url:" . hash('md5', $urlObj) . ":$page:$count:" . implode(',', $relationships);
 
         return Cache::remember($cacheKey, 3600, function () use ($urlObj, $page, $count, $relationships) {
-            $query = Scammer::whereHas('profiles', function ($query) use ($urlObj) {
+            $query = Scammer::whereHas('contacts', function ($query) use ($urlObj) {
                 $query->where('contact', '=', $urlObj);
             });
 

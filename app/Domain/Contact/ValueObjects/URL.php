@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\ScammerProfile\ValueObjects;
+namespace App\Domain\Contact\ValueObjects;
 
 class URL {
     private string $url;

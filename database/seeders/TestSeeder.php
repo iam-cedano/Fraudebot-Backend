@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class TestSeeder extends Seeder
 {
     private array $scammers;
-    private array $organizationAccessPoints;
+    private array $organizationContacts;
     private array $organizations;
     public function __construct()
     {
@@ -18,10 +18,10 @@ class TestSeeder extends Seeder
                     'name' => 'Mario Lopez',
                     'iso_country' => 'MX',
                     'is_active' => true,
-                    'profiles' => [
+                    'contacts' => [
                         [
                             'name' => 'Mario Lopez',
-                            'social_media' => 'whatsapp',
+                            'platform' => 1,
                             'contact' => '+521111111111'
                         ]
                     ],
@@ -35,16 +35,18 @@ class TestSeeder extends Seeder
                 ]
             ]
         ];
-        $this->organizationAccessPoints = [
+        $this->organizationContacts = [
             'Ecohuerta' => [
                 [
-                    'PlatformType' => 'website',
+                    'name' => 'Website',
+                    'platform' => 9,
                     'contact' => 'https://example.com',
                     'is_active' => true
                 ],
                 [
-                    'PlatformType' => 'whatsapp-group',
-                    'contact' => '',
+                    'name' => 'WhatsApp Group',
+                    'platform' => 1,
+                    'contact' => '+521111111111',
                     'is_active' => true
                 ]
             ]
@@ -63,23 +65,23 @@ class TestSeeder extends Seeder
         foreach ($this->organizations as $key => $data) {
             $org = Organization::create($data);
             
-            if (isset($this->organizationAccessPoints[$key])) {
-                foreach ($this->organizationAccessPoints[$key] as $accessPoint) {
-                    $org->accessPoints()->create($accessPoint);
+            if (isset($this->organizationContacts[$key])) {
+                foreach ($this->organizationContacts[$key] as $contact) {
+                    $org->contacts()->create($contact);
                 }
             }
 
             if (isset($this->scammers[$key])) {
                 foreach ($this->scammers[$key] as $scammerData) {
-                    $profiles = $scammerData['profiles'] ?? [];
+                    $contacts = $scammerData['contacts'] ?? [];
                     $paymentMethods = $scammerData['payment_methods'] ?? [];
                     
-                    unset($scammerData['profiles'], $scammerData['payment_methods']);
+                    unset($scammerData['contacts'], $scammerData['payment_methods']);
                     
                     $scammer = \App\Models\Scammer::create($scammerData);
                     
-                    foreach ($profiles as $profile) {
-                        $scammer->profiles()->create($profile);
+                    foreach ($contacts as $contact) {
+                        $scammer->contacts()->create($contact);
                     }
                     
                     foreach ($paymentMethods as $paymentMethod) {

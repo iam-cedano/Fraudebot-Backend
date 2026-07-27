@@ -41,22 +41,22 @@ class Scammer extends Model
     protected static function booted()
     {
         static::deleted(function ($scammer) {
-            $scammer->profiles()->delete();
+            $scammer->contacts()->delete();
             $scammer->paymentMethods()->delete();
         });
 
         static::restoring(function ($scammer) {
-            $scammer->profiles()->withTrashed()->restore();
+            $scammer->contacts()->withTrashed()->restore();
             $scammer->paymentMethods()->withTrashed()->restore();
         });
     }
 
     /**
-     * Get the profiles associated with the scammer.
+     * Get the contacts associated with the scammer.
      */
-    public function profiles()
+    public function contacts()
     {
-        return $this->hasMany(ScammerProfile::class);
+        return $this->hasMany(Contact::class);
     }
 
     /**
