@@ -17,6 +17,12 @@ class TestSeeder extends Seeder
         $organizations = (int) env('SEED_ORGANIZATIONS', 1);
         $reports = (int) env('SEED_REPORTS', 2);
 
+        if ($scammers == 0 || $contacts == 0 || $organizations == 0 || $reports == 0) {
+            $this->command->error('SEED_SCAMMERS, SEED_CONTACTS, SEED_ORGANIZATIONS, and SEED_REPORTS must be greater than 0');
+
+            exit(1);
+        }
+
         Scammer::factory()
             ->count($scammers)
             ->has(Organization::factory())

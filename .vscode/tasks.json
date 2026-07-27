@@ -85,6 +85,20 @@
         "focus": true
       },
       "problemMatcher": []
+    },
+    {
+      "label": "[Backend] Seed Database with Mock Data",
+      "type": "shell",
+      "command": "docker compose exec -T -e SEED_SCAMMERS=${input:seedScammers} -e SEED_CONTACTS=${input:seedContacts} -e SEED_ORGANIZATIONS=${input:seedOrganizations} -e SEED_REPORTS=${input:seedReports} -w /var/www/backend backend php artisan db:seed --class=TestSeeder",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "problemMatcher": []
     }
   ],
   "inputs": [
@@ -99,6 +113,30 @@
       "type": "promptString",
       "description": "Artisan command (e.g. php artisan db:seed)",
       "default": ""
+    },
+    {
+      "id": "seedScammers",
+      "type": "promptString",
+      "description": "SEED_SCAMMERS — number of scammers to create",
+      "default": "1"
+    },
+    {
+      "id": "seedContacts",
+      "type": "promptString",
+      "description": "SEED_CONTACTS — contacts per scammer/organization",
+      "default": "3"
+    },
+    {
+      "id": "seedOrganizations",
+      "type": "promptString",
+      "description": "SEED_ORGANIZATIONS — number of standalone organizations",
+      "default": "1"
+    },
+    {
+      "id": "seedReports",
+      "type": "promptString",
+      "description": "SEED_REPORTS — reports per scammer/organization",
+      "default": "2"
     }
   ]
 }
