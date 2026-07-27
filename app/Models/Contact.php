@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
-use App\Domain\ScammerProfile\Enums\PlatformType;
-use App\Domain\ScammerProfile\ScammerProfileEntity;
+use App\Domain\Contact\ContactEntity;
+use App\Domain\Contact\Enums\PlatformType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ScammerProfile extends Model
+class Contact extends Model
 {
     use HasFactory, SoftDeletes;
+
     protected $fillable = [
+        'organization_id',
         'scammer_id',
         'name',
         'platform',
@@ -26,6 +28,7 @@ class ScammerProfile extends Model
 
     protected $casts = [
         'id' => 'integer',
+        'organization_id' => 'integer',
         'scammer_id' => 'integer',
         'contact' => 'string',
         'name' => 'string',
@@ -40,21 +43,21 @@ class ScammerProfile extends Model
         );
     }
 
-    /**
-     * Get the scammer that owns the profile.
-     */
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
     public function scammer()
     {
         return $this->belongsTo(Scammer::class);
     }
 
-    /**
-     * Convert the model to a domain entity.
-     */
-    public function toEntity(): ScammerProfileEntity
+    public function toEntity(): ContactEntity
     {
-        return new ScammerProfileEntity(
+        return new ContactEntity(
             id: $this->id,
+            organizationId: $this->organization_id,
             scammerId: $this->scammer_id,
             name: $this->name,
             platformType: $this->platform,

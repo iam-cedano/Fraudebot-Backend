@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Contact\ContactEntity;
+use App\Domain\Contact\Enums\PlatformType;
 use App\Domain\PaymentMethod\Enums\PaymentMethodType;
 use App\Domain\ScammerPaymentMethod\ScammerPaymentMethodEntity;
-use App\Domain\ScammerProfile\Enums\PlatformType;
-use App\Domain\ScammerProfile\ScammerProfileEntity;
 use App\Http\Controllers\Controller;
+use App\Models\Contact;
 use App\Models\Scammer;
-use App\Models\ScammerProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class ScammerController extends Controller
 {
@@ -20,7 +19,7 @@ class ScammerController extends Controller
      */
     public function index()
     {
-        return response()->json(Scammer::with(['profiles', 'paymentMethods', 'organizations'])->get());
+        return response()->json(Scammer::with(['contacts', 'paymentMethods', 'organizations'])->get());
     }
 
     /**
@@ -31,11 +30,11 @@ class ScammerController extends Controller
             'name' => 'required|string|max:255',
             'iso_country' => 'nullable|string|size:2',
             'is_active' => 'boolean',
-            'profiles' => 'sometimes|array',
-            'profiles.*.name' => 'required_with:profiles|string|max:50',
-            'profiles.*.platform' => 'required_with:profiles',
-            'profiles.*.contact' => 'required_with:profiles|string|max:100',
-            'profiles.*.is_active' => 'boolean',
+            'contacts' => 'sometimes|array',
+            'contacts.*.name' => 'required_with:contacts|string|max:50',
+            'contacts.*.platform' => 'required_with:contacts',
+            'contacts.*.contact' => 'required_with:contacts|string|max:100',
+            'contacts.*.is_active' => 'boolean',
             'paymentMethods' => 'sometimes|array',
             'paymentMethods.*.reference' => 'required_with:paymentMethods|string|max:255',
             'paymentMethods.*.payment_type' => 'required_with:paymentMethods',
@@ -48,9 +47,9 @@ class ScammerController extends Controller
 
         $scammer = Scammer::create($request->only(['name', 'iso_country', 'is_active']));
 
-        if ($request->has('profiles')) {
-            foreach ($request->input('profiles') as $profileData) {
-                $inputPlatform = $profileData['platform'];
+        if ($request->has('contacts')) {
+            foreach ($request->input('contacts') as $contactData) {
+                $inputPlatform = $contactData['platform'];
                 if (is_numeric($inputPlatform)) {
                     $platform = PlatformType::tryFrom((int)$inputPlatform) ?? throw new \InvalidArgumentException('Invalid platform type');
                 } else {
@@ -59,15 +58,16 @@ class ScammerController extends Controller
                     $platform = PlatformType::from($mediaNumber);
                 }
 
-                $profileEntity = new ScammerProfileEntity(
+                $contactEntity = new ContactEntity(
                     id: null,
+                    organizationId: null,
                     scammerId: $scammer->id,
-                    name: $profileData['name'],
+                    name: $contactData['name'],
                     platformType: $platform,
-                    contact: $profileData['contact'],
-                    isActive: $profileData['is_active'] ?? true,
+                    contact: $contactData['contact'],
+                    isActive: $contactData['is_active'] ?? true,
                 );
-                $scammer->profiles()->create($profileEntity->toArray());
+                $scammer->contacts()->create($contactEntity->toArray());
             }
         }
 
@@ -93,7 +93,7 @@ class ScammerController extends Controller
             }
         }
 
-        return response()->json($scammer->load(['profiles', 'paymentMethods']), 201);
+        return response()->json($scammer->load(['contacts', 'paymentMethods']), 201);
     }
 
     /**
@@ -101,7 +101,7 @@ class ScammerController extends Controller
      */
     public function show(Scammer $scammer)
     {
-        return response()->json($scammer->load(['profiles', 'paymentMethods', 'organizations']));
+        return response()->json($scammer->load(['contacts', 'paymentMethods', 'organizations']));
     }
 
     /**
@@ -146,9 +146,9 @@ class ScammerController extends Controller
     }
 
     /**
-     * Edit profile information of a scammer
+     * Edit contact information of a scammer
      */
-    public function updateProfile(Request $request, ScammerProfile $profile)
+    public function updateContact(Request $request, Contact $contact)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:50',
@@ -161,7 +161,7 @@ class ScammerController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $platform = $profile->platform;
+        $platform = $contact->platform;
 
         if ($request->has('platform')) {
             $inputPlatform = $request->input('platform');
@@ -175,31 +175,32 @@ class ScammerController extends Controller
             }
         }
 
-        $profileEntity = new ScammerProfileEntity(
-            id: $profile->id,
-            scammerId: $profile->scammer_id,
-            name: $request->input('name', $profile->name),
+        $contactEntity = new ContactEntity(
+            id: $contact->id,
+            organizationId: null,
+            scammerId: $contact->scammer_id,
+            name: $request->input('name', $contact->name),
             platformType: $platform,
-            contact: $request->input('contact', $profile->contact),
-            isActive: $request->input('is_active', $profile->is_active),
+            contact: $request->input('contact', $contact->contact),
+            isActive: $request->input('is_active', $contact->is_active),
         );
 
-        $profile->update($profileEntity->toArray());
+        $contact->update($contactEntity->toArray());
 
         return response()->json([
-            'id' => $profile->id,
-            'scammer_id' => $profile->scammer_id,
-            'name' => $profile->name,
-            'platform' => $profile->platform_name,
-            'contact' => $profile->contact,
-            'is_active' => $profile->is_active,
-            'created_at' => $profile->created_at,
-            'updated_at' => $profile->updated_at,
+            'id' => $contact->id,
+            'scammer_id' => $contact->scammer_id,
+            'name' => $contact->name,
+            'platform' => $contact->platform_name,
+            'contact' => $contact->contact,
+            'is_active' => $contact->is_active,
+            'created_at' => $contact->created_at,
+            'updated_at' => $contact->updated_at,
         ]);
     }
 
-    // Create profile of a scammer
-    public function createProfile(Request $request, Scammer $scammer)
+    // Create contact of a scammer
+    public function createContact(Request $request, Scammer $scammer)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:50',
@@ -226,8 +227,9 @@ class ScammerController extends Controller
             $platform = PlatformType::from($mediaNumber);
         }
 
-        $profile = new ScammerProfileEntity(
+        $contact = new ContactEntity(
             id: null,
+            organizationId: null,
             scammerId: $scammer->id,
             name: $request->input('name'),
             platformType: $platform,
@@ -235,17 +237,17 @@ class ScammerController extends Controller
             isActive: $request->input('is_active', true),
         );
 
-        $profileModel = $scammer->profiles()->create($profile->toArray());
+        $contactModel = $scammer->contacts()->create($contact->toArray());
 
         return response()->json([
-            'id' => $profileModel->id,
-            'scammer_id' => $profileModel->scammer_id,
-            'name' => $profileModel->name,
-            'platform' => $profileModel->platform_name,
-            'contact' => $profileModel->contact,
-            'is_active' => $profileModel->is_active,
-            'created_at' => $profileModel->created_at,
-            'updated_at' => $profileModel->updated_at,
+            'id' => $contactModel->id,
+            'scammer_id' => $contactModel->scammer_id,
+            'name' => $contactModel->name,
+            'platform' => $contactModel->platform_name,
+            'contact' => $contactModel->contact,
+            'is_active' => $contactModel->is_active,
+            'created_at' => $contactModel->created_at,
+            'updated_at' => $contactModel->updated_at,
         ], 201);
     }
 

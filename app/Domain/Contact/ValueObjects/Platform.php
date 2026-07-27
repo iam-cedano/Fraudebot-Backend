@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domain\ScammerProfile\ValueObjects;
+namespace App\Domain\Contact\ValueObjects;
 
-use App\Domain\ScammerProfile\Enums\PlatformType;
+use App\Domain\Contact\Enums\PlatformType;
 use App\Infrastructure\Facebook\FacebookServiceInterface;
 use App\Infrastructure\Instagram\InstagramServiceInterface;
 use App\Infrastructure\TikTok\TikTokServiceInterface;

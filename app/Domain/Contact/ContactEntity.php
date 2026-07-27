@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Domain\ScammerProfile;
+namespace App\Domain\Contact;
 
+use App\Domain\Contact\Enums\PlatformType;
+use App\Domain\Contact\ValueObjects\Platform;
 use App\Domain\Entity;
-use App\Domain\ScammerProfile\Enums\PlatformType;
-use App\Domain\ScammerProfile\ValueObjects\Platform;
 
-class ScammerProfileEntity extends Entity
+class ContactEntity extends Entity
 {
     public function __construct(
         public readonly ?int $id,
-        public int $scammerId,
+        public ?int $organizationId,
+        public ?int $scammerId,
         public string $name,
         public PlatformType $platformType,
         public string $contact,
@@ -23,6 +24,7 @@ class ScammerProfileEntity extends Entity
     {
         return [
             'id' => $this->id,
+            'organization_id' => $this->organizationId,
             'scammer_id' => $this->scammerId,
             'name' => $this->name,
             'platform' => $this->platformType,
@@ -33,6 +35,14 @@ class ScammerProfileEntity extends Entity
 
     protected function validate(): void
     {
+        if (empty($this->organizationId) && empty($this->scammerId)) {
+            throw new \InvalidArgumentException('Either organization ID or scammer ID is required');
+        }
+
+        if (!empty($this->organizationId) && !empty($this->scammerId)) {
+            throw new \InvalidArgumentException('Contact cannot belong to both an organization and a scammer');
+        }
+
         if (empty($this->name) || $this->name == '') {
             throw new \InvalidArgumentException('Name cannot be empty');
         }
@@ -43,10 +53,6 @@ class ScammerProfileEntity extends Entity
 
         if (empty($this->platformType)) {
             throw new \InvalidArgumentException('PlatformType type cannot be empty');
-        }
-
-        if (empty($this->scammerId)) {
-            throw new \InvalidArgumentException('Scammer ID cannot be empty');
         }
 
         if (strlen($this->name) > 50) {
