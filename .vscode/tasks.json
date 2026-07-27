@@ -1,0 +1,104 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "[ALL] Start Services",
+      "type": "shell",
+      "command": "FRAUDEBOT_UID=$(id -u) FRAUDEBOT_GID=$(id -g) docker compose up -d --build",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "[ALL] Stop Services",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "[ALL] Restart Services",
+      "type": "shell",
+      "command": "docker compose restart",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "[Backend] Run PHPUnit Tests",
+      "type": "shell",
+      "command": "docker compose run --rm --no-deps backend ./vendor/bin/phpunit tests",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "[Backend] Run PHPUnit Tests (debug output)",
+      "type": "shell",
+      "command": "docker compose exec -T -w /var/www/backend backend ./vendor/bin/phpunit --debug --filter ${input:phpunitFilter}",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "[Backend] Run Artisan Command",
+      "type": "shell",
+      "command": "docker compose exec -T -w /var/www/backend backend php artisan ${input:artisanCommand}",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "phpunitFilter",
+      "type": "promptString",
+      "description": "PHPUnit filter (e.g. PublicScammerControllerTest::testScammerSearchByCardNumber)",
+      "default": "PublicScammerControllerTest"
+    },
+    {
+      "id": "artisanCommand",
+      "type": "promptString",
+      "description": "Artisan command (e.g. php artisan db:seed)",
+      "default": ""
+    }
+  ]
+}

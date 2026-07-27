@@ -1,0 +1,4 @@
+{
+  "phpunit.command": "\"${cwd}/.vscode/run-phpunit-in-docker.sh\" ${phpargs} \"${phpunit}\" ${phpunitargs}",
+  "phpunit.phpunit": "vendor/bin/phpunit"
+}
