@@ -18,8 +18,8 @@ class ReportController extends Controller
     public function index(Request $request): JsonResponse
     {
         $clue = new Clue($request->input('q'));
-        $page = $request->input('p', 1);
-        $count = $request->input('c', 10);
+        $page = max(1, (int) $request->input('p', 1));
+        $count = max(1, min(100, (int) $request->input('c', 10)));
 
         $items = $this->searchRepository->find($clue, $page, $count);
 
