@@ -1,10 +1,11 @@
 <?php
-namespace App\Repositories\Scammer;
+
+namespace App\Repositories\Organization;
 
 use App\Domain\Scammer\ValueObjects\Clue;
 use Illuminate\Support\Collection;
 
-interface ScammerCardRepositoryInterface
+interface OrganizationCardRepositoryInterface
 {
     public function find(Clue $clue, int $page, int $count): Collection;
 }
