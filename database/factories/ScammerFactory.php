@@ -12,7 +12,7 @@ class ScammerFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
-            'iso_country' => 'MX',
+            'country' => 'MX',
             'is_active' => true
         ];
     }

@@ -14,7 +14,7 @@ class Scammer extends Model
 
     protected $fillable = [
         'name',
-        'iso_country',
+        'country',
         'is_active',
     ];
 
@@ -86,7 +86,7 @@ class Scammer extends Model
         return new ScammerEntity(
             id: $this->id,
             name: $this->name,
-            isoCountry: $this->iso_country,
+            country: $this->country,
             isActive: $this->is_active,
         );
     }

@@ -13,7 +13,8 @@ class BasicOrganizationResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'is_active' => $this->is_active
+            'country' => $this->country,
+            'is_active' => $this->is_active,
         ];
     }
 }

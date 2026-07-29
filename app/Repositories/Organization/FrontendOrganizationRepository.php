@@ -12,7 +12,7 @@ class FrontendOrganizationRepository implements OrganizationRepositoryInterface 
         foreach ($relationships as $relationship) {
             if ($relationship === 'scammers') {
                 $eagerLoads['scammers'] = function ($q) {
-                    $q->select('scammers.id', 'name', 'iso_country', 'is_active');
+                    $q->select('scammers.id', 'name', 'country', 'is_active');
                 };
             } elseif ($relationship === 'paymentMethods') {
                 $eagerLoads['paymentMethods'] = function ($q) {

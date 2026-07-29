@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Domain\Scammer\Enums\ClueType;
 use App\Domain\Scammer\ValueObjects\Clue;
 use App\Http\Controllers\Public\ReportController;
+use App\Http\Resources\Public\ReportCardResource;
+use App\Models\Organization;
+use App\Models\Scammer;
 use App\Repositories\Search\SearchRepositoryInterface;
 use Illuminate\Http\Request;
 use Tests\TestCase;
@@ -105,7 +108,7 @@ class PublicReportControllerTest extends TestCase
                 'id' => 1,
                 'name' => 'John Doe',
                 'reports' => 13,
-                'iso_country' => 'MX',
+                'country' => 'MX',
                 'products' => ['Invertions', 'Crypto', 'NFT'],
                 'organizations' => ['Ecohuertas'],
                 'type' => 'scammer',
@@ -115,9 +118,8 @@ class PublicReportControllerTest extends TestCase
                 'id' => 2,
                 'name' => 'Ecohuertas',
                 'reports' => 35,
-                'iso_country' => 'MX',
+                'country' => 'MX',
                 'products' => ['Crypto'],
-                'organizations' => [],
                 'type' => 'organization',
                 'is_active' => true,
             ],
@@ -139,6 +141,8 @@ class PublicReportControllerTest extends TestCase
             ? $this->callback(fn(Clue $clue) => $clue->getType() === ClueType::Nothing)
             : $this->callback(fn(Clue $clue) => $clue->getValue() === $query);
 
+        $models = $this->makeReportModels($expectedData);
+
         $searchRepositoryMock->expects($this->once())
             ->method('find')
             ->with(
@@ -146,10 +150,7 @@ class PublicReportControllerTest extends TestCase
                 $this->equalTo($page),
                 $this->equalTo($count),
             )
-            ->willReturn(collect(array_map(
-                static fn(array $item): object => (object) $item,
-                $expectedData,
-            )));
+            ->willReturn(collect($models));
 
         $requestParams = ['p' => $page, 'c' => $count];
         if ($query !== null) {
@@ -160,9 +161,41 @@ class PublicReportControllerTest extends TestCase
         $response = (new ReportController($searchRepositoryMock))->index($request);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals($expectedData, $response->getData(true)['data']);
+        $this->assertEquals(
+            ReportCardResource::collection(collect($models))->resolve(),
+            $response->getData(true)['data'],
+        );
         $this->assertEquals($page, $response->getData(true)['page']);
         $this->assertEquals($count, $response->getData(true)['count']);
         $this->assertEquals(count($expectedData), $response->getData(true)['total']);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, Scammer|Organization>
+     */
+    private function makeReportModels(array $items): array
+    {
+        return array_map(function (array $item): Scammer|Organization {
+            $model = $item['type'] === 'scammer'
+                ? new Scammer()
+                : new Organization();
+
+            $model->forceFill([
+                'id' => $item['id'],
+                'name' => $item['name'],
+                'country' => $item['country'],
+                'is_active' => $item['is_active'],
+            ]);
+
+            $model->reports = $item['reports'];
+            $model->products = $item['products'];
+
+            if ($item['type'] === 'scammer') {
+                $model->organizations = $item['organizations'];
+            }
+
+            return $model;
+        }, $items);
     }
 }

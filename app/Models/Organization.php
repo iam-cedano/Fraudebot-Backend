@@ -14,6 +14,7 @@ class Organization extends Model
     protected $fillable = [
         'name',
         'description',
+        'country',
         'is_active',
     ];
 
@@ -62,6 +63,7 @@ class Organization extends Model
             id: $this->id,
             name: $this->name,
             description: $this->description,
+            country: $this->country,
             isActive: $this->is_active,
         );
     }
