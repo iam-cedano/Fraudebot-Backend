@@ -28,7 +28,7 @@ class ScammerController extends Controller
     public function store(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'iso_country' => 'nullable|string|size:2',
+            'country' => 'nullable|string|size:2',
             'is_active' => 'boolean',
             'contacts' => 'sometimes|array',
             'contacts.*.name' => 'required_with:contacts|string|max:50',
@@ -45,7 +45,7 @@ class ScammerController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $scammer = Scammer::create($request->only(['name', 'iso_country', 'is_active']));
+        $scammer = Scammer::create($request->only(['name', 'country', 'is_active']));
 
         if ($request->has('contacts')) {
             foreach ($request->input('contacts') as $contactData) {
@@ -111,7 +111,7 @@ class ScammerController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
-            'iso_country' => 'nullable|string|size:2',
+            'country' => 'nullable|string|size:2',
             'is_active' => 'boolean',
         ]);
 

@@ -2,219 +2,119 @@
 
 namespace App\Repositories\Search;
 
-use App\Domain\PaymentMethod\ValueObjects\AccountNumber;
-use App\Domain\PaymentMethod\ValueObjects\CardNumber;
-use App\Domain\PaymentMethod\ValueObjects\Clabe;
 use App\Domain\Scammer\Enums\ClueType;
 use App\Domain\Scammer\ValueObjects\Clue;
-use App\Models\Organization;
-use App\Models\Report;
-use App\Models\Scammer;
-use App\Repositories\Scammer\ScammerCardRepository;
+use App\Domain\Search\ValueObjects\CardSearchResult;
+use App\Repositories\Organization\OrganizationCardRepositoryInterface;
+use App\Repositories\Scammer\ScammerCardRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class PublicSearchRepository implements SearchRepositoryInterface
 {
-    public function __construct(private ScammerCardRepository $scammerCardRepository)
-    {
+    private const CACHE_TTL_SECONDS = 3600;
+    private const SOURCE_SCAMMER = 'scammer';
+    private const SOURCE_ORGANIZATION = 'organization';
+
+    public function __construct(
+        private ScammerCardRepositoryInterface $scammerCardRepository,
+        private OrganizationCardRepositoryInterface $organizationCardRepository,
+    ) {
     }
 
-    public function find(Clue $clue, int $page, int $count): Collection
+    public function find(Clue $clue, int $page, int $count): CardSearchResult
     {
         if ($clue->getType() === ClueType::Nothing) {
-            return collect([]);
+            return CardSearchResult::empty();
         }
 
-        $scammers = $this->findScammers($clue, $page, $count);
+        $clueValue = strtolower($clue->getValue());
+        $cacheKey = SearchCache::key("{$clueValue}:{$page}:{$count}");
 
-        if ($clue->getType() === ClueType::General) {
-            return $this->mapScammersToReportCards($scammers);
+        return Cache::remember(
+            $cacheKey,
+            self::CACHE_TTL_SECONDS,
+            fn() => $this->search($clue, $page, $count),
+        );
+    }
+
+    private function search(Clue $clue, int $page, int $count): CardSearchResult
+    {
+        $scammerQuery = $this->scammerCardRepository->matchQuery($clue);
+        $organizationQuery = $this->organizationCardRepository->matchQuery($clue);
+
+        $total = ($scammerQuery?->count() ?? 0) + ($organizationQuery?->count() ?? 0);
+
+        if ($total === 0) {
+            return CardSearchResult::empty();
         }
 
-        $organizations = $this->findOrganizations($clue, $page, $count);
+        $candidates = $this->rankedPage($scammerQuery, $organizationQuery, $page, $count);
 
-        return $this->mapScammersToReportCards($scammers)
-            ->merge($this->mapOrganizationsToReportCards($organizations))
-            ->take($count)
+        if ($candidates->isEmpty()) {
+            return new CardSearchResult(collect(), $total);
+        }
+
+        $scammerModels = $this->scammerCardRepository->hydrate(
+            $candidates->where('source_type', self::SOURCE_SCAMMER)->pluck('id')->all(),
+        );
+
+        $organizationModels = $this->organizationCardRepository->hydrate(
+            $candidates->where('source_type', self::SOURCE_ORGANIZATION)->pluck('id')->all(),
+        );
+
+        $items = $candidates
+            ->map(fn($row) => $row->source_type === self::SOURCE_SCAMMER
+                ? $scammerModels->get($row->id)
+                : $organizationModels->get($row->id))
+            ->filter()
             ->values();
-    }
 
-    private function findScammers(Clue $clue, int $page, int $count): Collection
-    {
-        if ($clue->getType() === ClueType::IpAddress) {
-            return $this->findScammersByContact($clue->getValue(), $page, $count);
-        }
-
-        if (!in_array($clue->getType(), [
-            ClueType::Email,
-            ClueType::CardNumber,
-            ClueType::Clabe,
-            ClueType::AccountNumber,
-            ClueType::Phone,
-            ClueType::Url,
-            ClueType::General,
-        ], true)) {
-            return collect([]);
-        }
-
-        return $this->scammerCardRepository->find($clue, $page, $count, ['organizations']);
-    }
-
-    private function findScammersByContact(string $reference, int $page, int $count): Collection
-    {
-        return Scammer::query()
-            ->whereHas('contacts', fn ($query) => $query->where('contact', '=', $reference))
-            ->with(['organizations:id,name'])
-            ->withCount('reports')
-            ->paginate($count, ['id', 'name', 'iso_country', 'is_active'], 'page', $page)
-            ->getCollection();
-    }
-
-    private function findOrganizations(Clue $clue, int $page, int $count): Collection
-    {
-        return match ($clue->getType()) {
-            ClueType::General => $this->findOrganizationsByName($clue->getValue(), $page, $count),
-            ClueType::Email, ClueType::Url, ClueType::IpAddress => $this->findOrganizationsByContact($clue->getValue(), $page, $count),
-            ClueType::Phone => $this->findOrganizationsByPhone($clue->getValue(), $page, $count),
-            ClueType::CardNumber => $this->findOrganizationsByPaymentReference(new CardNumber($clue->getValue()), $page, $count),
-            ClueType::Clabe => $this->findOrganizationsByPaymentReference(new Clabe($clue->getValue()), $page, $count),
-            ClueType::AccountNumber => $this->findOrganizationsByPaymentReference(new AccountNumber($clue->getValue()), $page, $count),
-            default => collect(),
-        };
-    }
-
-    private function findOrganizationsByName(string $reference, int $page, int $count): Collection
-    {
-        $parsedReference = trim(strip_tags($reference));
-
-        return Organization::query()
-            ->where('name', 'LIKE', "%{$parsedReference}%")
-            ->withCount('reports')
-            ->paginate($count, ['id', 'name', 'is_active'], 'page', $page)
-            ->getCollection();
-    }
-
-    private function findOrganizationsByContact(string $reference, int $page, int $count): Collection
-    {
-        return Organization::query()
-            ->whereHas('contacts', fn ($query) => $query->where('contact', '=', $reference))
-            ->withCount('reports')
-            ->paginate($count, ['id', 'name', 'is_active'], 'page', $page)
-            ->getCollection();
-    }
-
-    private function findOrganizationsByPhone(string $phoneNumber, int $page, int $count): Collection
-    {
-        return Organization::query()
-            ->whereHas('paymentMethods', fn ($query) => $query->where('reference', '=', $phoneNumber))
-            ->withCount('reports')
-            ->paginate($count, ['id', 'name', 'is_active'], 'page', $page)
-            ->getCollection();
-    }
-
-    private function findOrganizationsByPaymentReference(
-        CardNumber|Clabe|AccountNumber $reference,
-        int $page,
-        int $count,
-    ): Collection {
-        return Organization::query()
-            ->whereHas('paymentMethods', fn ($query) => $query->where('reference', '=', (string) $reference))
-            ->withCount('reports')
-            ->paginate($count, ['id', 'name', 'is_active'], 'page', $page)
-            ->getCollection();
+        return new CardSearchResult($items, $total);
     }
 
     /**
-     * @param Collection<int, Scammer> $scammers
+     * Ranks matching rows from both tables together at the database level
+     * (a UNION ALL of just `id`/`updated_at`, ordered and paginated in SQL)
+     * so pagination stays exact regardless of how many rows either table
+     * has, without needing to fetch and merge candidate sets in PHP.
      */
-    private function mapScammersToReportCards(Collection $scammers): Collection
+    private function rankedPage(?Builder $scammerQuery, ?Builder $organizationQuery, int $page, int $count): Collection
     {
-        if ($scammers->isEmpty()) {
-            return collect([]);
-        }
-
-        $productsByScammerId = $this->getProductNamesGroupedByScammerId(
-            $scammers->pluck('id')->all(),
-        );
-
-        return $scammers->map(fn (Scammer $scammer): object => (object) [
-            'id' => $scammer->id,
-            'name' => $scammer->name,
-            'reports' => $scammer->reports_count ?? $scammer->reports()->count(),
-            'iso_country' => $scammer->iso_country,
-            'is_active' => $scammer->is_active,
-            'organizations' => $scammer->relationLoaded('organizations')
-                ? $scammer->organizations->pluck('name')->values()->all()
-                : [],
-            'products' => $productsByScammerId[$scammer->id] ?? [],
-            'type' => 'scammer',
+        $subQueries = array_filter([
+            $scammerQuery ? $this->asRankable(clone $scammerQuery, self::SOURCE_SCAMMER) : null,
+            $organizationQuery ? $this->asRankable(clone $organizationQuery, self::SOURCE_ORGANIZATION) : null,
         ]);
-    }
 
-    /**
-     * @param Collection<int, Organization> $organizations
-     */
-    private function mapOrganizationsToReportCards(Collection $organizations): Collection
-    {
-        if ($organizations->isEmpty()) {
-            return collect([]);
+        if ($subQueries === []) {
+            return collect();
         }
 
-        $productsByOrganizationId = $this->getProductNamesGroupedByOrganizationId(
-            $organizations->pluck('id')->all(),
-        );
+        $union = array_shift($subQueries);
+        foreach ($subQueries as $subQuery) {
+            $union->unionAll($subQuery);
+        }
 
-        return $organizations->map(fn (Organization $organization): object => (object) [
-            'id' => $organization->id,
-            'name' => $organization->name,
-            'reports' => $organization->reports_count ?? $organization->reports()->count(),
-            'iso_country' => null,
-            'is_active' => $organization->is_active,
-            'organizations' => [],
-            'products' => $productsByOrganizationId[$organization->id] ?? [],
-            'type' => 'organization',
-        ]);
+        return DB::query()
+            ->fromSub($union, 'search_candidates')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
+            ->offset(($page - 1) * $count)
+            ->limit($count)
+            ->get();
     }
 
-    /**
-     * @param array<int, int> $scammerIds
-     * @return array<int, array<int, string>>
-     */
-    private function getProductNamesGroupedByScammerId(array $scammerIds): array
+    private function asRankable(Builder $query, string $sourceType): QueryBuilder
     {
-        return Report::query()
-            ->whereIn('scammer_id', $scammerIds)
-            ->whereNotNull('product_id')
-            ->with('product:id,name')
-            ->get()
-            ->groupBy('scammer_id')
-            ->map(fn (Collection $reports): array => $reports
-                ->pluck('product.name')
-                ->filter()
-                ->unique()
-                ->values()
-                ->all())
-            ->all();
-    }
-
-    /**
-     * @param array<int, int> $organizationIds
-     * @return array<int, array<int, string>>
-     */
-    private function getProductNamesGroupedByOrganizationId(array $organizationIds): array
-    {
-        return Report::query()
-            ->whereIn('organization_id', $organizationIds)
-            ->whereNotNull('product_id')
-            ->with('product:id,name')
-            ->get()
-            ->groupBy('organization_id')
-            ->map(fn (Collection $reports): array => $reports
-                ->pluck('product.name')
-                ->filter()
-                ->unique()
-                ->values()
-                ->all())
-            ->all();
+        // toBase() must run before select(): it's what actually applies
+        // Eloquent's global scopes (e.g. SoftDeletingScope) as real WHERE
+        // clauses. select() on the Eloquent builder itself would silently
+        // skip that and leak soft-deleted rows into the union.
+        return $query
+            ->toBase()
+            ->select(['id', DB::raw("'{$sourceType}' as source_type"), 'updated_at']);
     }
 }

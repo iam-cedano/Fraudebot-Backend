@@ -14,7 +14,8 @@ class OrganizationFactory extends Factory
         return [
             'name' => $this->faker->company(),
             'description' => $this->faker->sentence(),
-            'is_active' => true
+            'country' => $this->faker->countryCode(),
+            'is_active' => $this->faker->boolean(),
         ];
     }
 }

@@ -33,6 +33,7 @@ class OrganizationController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'country' => 'nullable|string|size:2',
             'is_active' => 'boolean',
         ]);
 
@@ -69,6 +70,7 @@ class OrganizationController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'country' => 'nullable|string|size:2',
             'is_active' => 'sometimes|boolean',
         ]);
 

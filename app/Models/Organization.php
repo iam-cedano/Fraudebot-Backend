@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Organization\OrganizationEntity;
+use App\Repositories\Search\SearchCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,12 +15,28 @@ class Organization extends Model
     protected $fillable = [
         'name',
         'description',
+        'country',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::saved(function () {
+            SearchCache::invalidate();
+        });
+
+        static::deleted(function () {
+            SearchCache::invalidate();
+        });
+
+        static::restored(function () {
+            SearchCache::invalidate();
+        });
+    }
 
     /**
      * Get the scammers associated with the organization.
@@ -62,6 +79,7 @@ class Organization extends Model
             id: $this->id,
             name: $this->name,
             description: $this->description,
+            country: $this->country,
             isActive: $this->is_active,
         );
     }

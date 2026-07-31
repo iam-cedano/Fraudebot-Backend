@@ -12,8 +12,8 @@ class ScammerFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
-            'iso_country' => 'MX',
-            'is_active' => true
+            'country' => $this->faker->countryCode(),
+            'is_active' => $this->faker->boolean()
         ];
     }
 }

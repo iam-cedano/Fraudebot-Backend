@@ -18,9 +18,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 use App\Http\Controllers\Public;
 
-use App\Repositories\Organization\OrganizationRepositoryInterface;
-
 use App\Repositories\Organization\FrontendOrganizationRepository;
+use App\Repositories\Organization\OrganizationCardRepository;
+use App\Repositories\Organization\OrganizationCardRepositoryInterface;
+use App\Repositories\Organization\OrganizationRepositoryInterface;
+use App\Repositories\Scammer\ScammerCardRepository;
+use App\Repositories\Scammer\ScammerCardRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +38,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(YoutubeServiceInterface::class, YoutubeService::class);
         $this->app->singleton(InstagramServiceInterface::class, InstagramService::class);
         $this->app->singleton(TikTokServiceInterface::class, TikTokService::class);
+        $this->app->bind(OrganizationCardRepositoryInterface::class, OrganizationCardRepository::class);
+        $this->app->bind(ScammerCardRepositoryInterface::class, ScammerCardRepository::class);
 
         $this->app->when(Public\OrganizationController::class)
         ->needs(OrganizationRepositoryInterface::class)

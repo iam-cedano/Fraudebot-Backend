@@ -3,9 +3,9 @@
 namespace App\Repositories\Search;
 
 use App\Domain\Scammer\ValueObjects\Clue;
-use Illuminate\Support\Collection;
+use App\Domain\Search\ValueObjects\CardSearchResult;
 
 interface SearchRepositoryInterface
 {
-    public function find(Clue $clue, int $page, int $count): Collection;
+    public function find(Clue $clue, int $page, int $count): CardSearchResult;
 }

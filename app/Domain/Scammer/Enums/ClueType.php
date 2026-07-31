@@ -12,6 +12,6 @@ enum ClueType
     case Clabe;
     case AccountNumber;
     case Username;
-    case General;
+    case Name;
     case Nothing;
 }
