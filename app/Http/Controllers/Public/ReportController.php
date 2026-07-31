@@ -18,14 +18,14 @@ class ReportController extends Controller
     public function index(Request $request): JsonResponse
     {
         $clue = new Clue($request->input('q'));
-        $page = max(1, (int) $request->input('p', 1));
+        $page = max(1, min(100000, (int) $request->input('p', 1)));
         $count = max(1, min(100, (int) $request->input('c', 10)));
 
-        $items = $this->searchRepository->find($clue, $page, $count);
+        $result = $this->searchRepository->find($clue, $page, $count);
 
         return response()->json([
-            'data' => ReportCardResource::collection($items)->resolve(),
-            'total' => $items->count(),
+            'data' => ReportCardResource::collection($result->items)->resolve(),
+            'total' => $result->total,
             'page' => $page,
             'count' => $count,
         ]);

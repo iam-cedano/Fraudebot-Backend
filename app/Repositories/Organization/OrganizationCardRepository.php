@@ -5,59 +5,83 @@ namespace App\Repositories\Organization;
 use App\Domain\Scammer\Enums\ClueType;
 use App\Domain\Scammer\ValueObjects\Clue;
 use App\Repositories\Search\ClueSearchInterface;
-use Illuminate\Support\Collection;
 use App\Models\Organization;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class OrganizationCardRepository implements OrganizationCardRepositoryInterface, ClueSearchInterface
 {
-    public function find(Clue $clue, int $page, int $count): Collection
+    public function matchQuery(Clue $clue): ?Builder
     {
         return match ($clue->getType()) {
-            ClueType::Name => $this->findByName($clue->getValue(), $page, $count),
-            ClueType::Email => $this->findByEmail($clue->getValue(), $page, $count),
-            ClueType::Url => $this->findByUrl($clue->getValue(), $page, $count),
-            ClueType::CardNumber => $this->findByCardNumber($clue->getValue(), $page, $count),
-            ClueType::Clabe => $this->findByClabe($clue->getValue(), $page, $count),
-            ClueType::AccountNumber => $this->findByAccountNumber($clue->getValue(), $page, $count),
-            ClueType::Phone => $this->findByPhoneNumber($clue->getValue(), $page, $count),
+            ClueType::Name => $this->matchByName($clue->getValue()),
+            ClueType::Email => $this->matchByEmail($clue->getValue()),
+            ClueType::Url => $this->matchByUrl($clue->getValue()),
+            ClueType::CardNumber => $this->matchByCardNumber($clue->getValue()),
+            ClueType::Clabe => $this->matchByClabe($clue->getValue()),
+            ClueType::AccountNumber => $this->matchByAccountNumber($clue->getValue()),
+            ClueType::Phone => $this->matchByPhoneNumber($clue->getValue()),
+            ClueType::IpAddress => $this->matchByIpAddress($clue->getValue()),
+            ClueType::Username => $this->matchByUsername($clue->getValue()),
+            ClueType::Nothing => null,
         };
     }
 
-    public function findByName(string $name, int $page, int $count): Collection
+    public function hydrate(array $ids): Collection
     {
+        if ($ids === []) {
+            return collect();
+        }
+
         return Organization::query()
-            ->where('name', 'LIKE', "%{$name}%")
-            ->paginate($count, ['*'], 'page', $page)
-            ->getCollection();
+            ->whereIn('id', $ids)
+            ->with(['reports.product'])
+            ->get(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
+            ->keyBy('id');
     }
 
-    public function findByEmail(string $email, int $page, int $count): Collection
+    public function matchByName(string $name): ?Builder
     {
-        return collect([]);
+        return Organization::query()->where('name', 'LIKE', "%{$name}%");
     }
 
-    public function findByUrl(string $url, int $page, int $count): Collection
+    public function matchByEmail(string $email): ?Builder
     {
-        return collect([]);
+        return null;
     }
 
-    public function findByCardNumber(string $cardNumber, int $page, int $count): Collection
+    public function matchByUrl(string $url): ?Builder
     {
-        return collect([]);
+        return null;
     }
 
-    public function findByClabe(string $clabe, int $page, int $count): Collection
+    public function matchByCardNumber(string $cardNumber): ?Builder
     {
-        return collect([]);
+        return null;
     }
 
-    public function findByAccountNumber(string $accountNumber, int $page, int $count): Collection
+    public function matchByClabe(string $clabe): ?Builder
     {
-        return collect([]);
+        return null;
     }
 
-    public function findByPhoneNumber(string $phoneNumber, int $page, int $count): Collection
+    public function matchByAccountNumber(string $accountNumber): ?Builder
     {
-        return collect([]);
+        return null;
+    }
+
+    public function matchByPhoneNumber(string $phoneNumber): ?Builder
+    {
+        return null;
+    }
+
+    public function matchByIpAddress(string $ipAddress): ?Builder
+    {
+        return null;
+    }
+
+    public function matchByUsername(string $username): ?Builder
+    {
+        return null;
     }
 }

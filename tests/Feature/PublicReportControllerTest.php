@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\Scammer\Enums\ClueType;
 use App\Domain\Scammer\ValueObjects\Clue;
+use App\Domain\Search\ValueObjects\CardSearchResult;
 use App\Http\Controllers\Public\ReportController;
 use App\Http\Resources\Public\ReportCardResource;
 use App\Models\Organization;
@@ -107,19 +108,45 @@ class PublicReportControllerTest extends TestCase
             [
                 'id' => 1,
                 'name' => 'John Doe',
-                'reports' => 13,
+                'reports' => collect([
+                    [
+                        'id' => 1,
+                        'product' => [
+                            'name' => 'Invertions',
+                        ],
+                    ],
+                ]),
                 'country' => 'MX',
-                'products' => ['Invertions', 'Crypto', 'NFT'],
-                'organizations' => ['Ecohuertas'],
+                'products' => collect(['Invertions', 'Crypto', 'NFT']),
+                'organizations' => collect(['Ecohuertas']),
                 'type' => 'scammer',
                 'is_active' => true,
             ],
             [
                 'id' => 2,
                 'name' => 'Ecohuertas',
-                'reports' => 35,
+                'reports' => collect([
+                    [
+                        'id' => 1,
+                        'product' => [
+                            'name' => 'Crypto',
+                        ],
+                    ],
+                    [
+                        'id' => 2,
+                        'product' => [
+                            'name' => 'NFT',
+                        ],
+                    ],
+                    [
+                        'id' => 3,
+                        'product' => [
+                            'name' => 'Invertions',
+                        ],
+                    ]
+                ]),
                 'country' => 'MX',
-                'products' => ['Crypto'],
+                'products' => collect(['Crypto', 'NFT', 'Invertions']),
                 'type' => 'organization',
                 'is_active' => true,
             ],
@@ -150,7 +177,7 @@ class PublicReportControllerTest extends TestCase
                 $this->equalTo($page),
                 $this->equalTo($count),
             )
-            ->willReturn(collect($models));
+            ->willReturn(new CardSearchResult(collect($models), count($models)));
 
         $requestParams = ['p' => $page, 'c' => $count];
         if ($query !== null) {
@@ -186,6 +213,8 @@ class PublicReportControllerTest extends TestCase
                 'name' => $item['name'],
                 'country' => $item['country'],
                 'is_active' => $item['is_active'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $model->reports = $item['reports'];

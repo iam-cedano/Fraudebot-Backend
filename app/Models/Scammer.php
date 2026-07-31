@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Scammer\ScammerEntity;
+use App\Repositories\Search\SearchCache;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,14 +36,24 @@ class Scammer extends Model
 
     protected static function booted()
     {
+        static::saved(function () {
+            SearchCache::invalidate();
+        });
+
         static::deleted(function ($scammer) {
             $scammer->contacts()->delete();
             $scammer->paymentMethods()->delete();
+
+            SearchCache::invalidate();
         });
 
         static::restoring(function ($scammer) {
             $scammer->contacts()->withTrashed()->restore();
             $scammer->paymentMethods()->withTrashed()->restore();
+        });
+
+        static::restored(function () {
+            SearchCache::invalidate();
         });
     }
 

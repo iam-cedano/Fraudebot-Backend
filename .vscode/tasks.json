@@ -87,6 +87,20 @@
       "problemMatcher": []
     },
     {
+      "label": "[Backend] Truncate All Tables",
+      "type": "shell",
+      "command": "docker compose exec -T -w /var/www/backend backend php artisan db:truncate --force",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "[Backend] Seed Database with Mock Data",
       "type": "shell",
       "command": "docker compose exec -T -e SEED_SCAMMERS=${input:seedScammers} -e SEED_CONTACTS=${input:seedContacts} -e SEED_ORGANIZATIONS=${input:seedOrganizations} -e SEED_REPORTS=${input:seedReports} -e SEED_USERS=${input:seedUsers} -e SEED_PRODUCTS=${input:seedProducts} -w /var/www/backend backend php artisan db:seed --class=TestSeeder",

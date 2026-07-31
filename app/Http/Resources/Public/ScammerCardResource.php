@@ -3,15 +3,20 @@
 namespace App\Http\Resources\Public;
 
 use App\Models\Scammer;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Request;
 
 /**
- * @mixin Scammer
- *
- * @property int $reports
- * @property array<int, string> $organizations
- * @property array<int, string> $products
+ * @property int $id
+ * @property string $name
+ * @property string $country
+ * @property bool $is_active
+ * @property Collection $reports
+ * @property Collection $organizations
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class ScammerCardResource extends JsonResource
 {
@@ -22,12 +27,12 @@ class ScammerCardResource extends JsonResource
             'name' => $this->name,
             'country' => $this->country,
             'is_active' => $this->is_active,
-            'reports' => $this->reports,
-            'organizations' => $this->organizations,
-            'products' => $this->products,
+            'reports' => $this->reports->count(),
+            'organizations' => $this->organizations->pluck('name')->all(),
+            'products' => $this->reports->pluck('product.name')->filter()->unique()->values()->all(),
             'type' => 'scammer',
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'created_at' => $this->created_at->format('Y-m-d'),
+            'updated_at' => $this->updated_at->format('Y-m-d'),
         ];
     }
 }

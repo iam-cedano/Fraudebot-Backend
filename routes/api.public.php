@@ -14,7 +14,7 @@ Route::prefix('public')->group(function () {
 
     Route::get('reports', [ReportController::class, 'index']);
 
-    Route::get('healthcheck', function() {
+    Route::get('healthcheck', function () {
         return response()->json(['status' => 'ok']);
     });
 });
