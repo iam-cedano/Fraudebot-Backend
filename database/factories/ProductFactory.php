@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Category;
 use App\Models\Product;
+use Database\Factories\Support\ScamEnterprisePool;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,12 +16,14 @@ class ProductFactory extends Factory
 
     public function definition(): array
     {
+        $market = fake()->randomElement(ScamEnterprisePool::markets());
+
         return [
-            'category_id' => Category::create([
-                'name' => fake()->unique()->words(2, true),
-                'emoji' => fake()->randomElement(['📦', '🏷️', '🛍️']),
-            ])->id,
-            'name' => fake()->words(3, true),
+            'category_id' => Category::firstOrCreate(
+                ['name' => $market],
+                ['emoji' => fake()->randomElement(['📦', '🏷️', '🛍️'])],
+            )->id,
+            'name' => $market,
             'emoji' => fake()->randomElement(['🛒', '💳', '📱', '🎮', '👟']),
         ];
     }
