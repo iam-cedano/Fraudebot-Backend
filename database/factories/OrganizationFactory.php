@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Organization;
+use Database\Factories\Support\ScamEnterprisePool;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class OrganizationFactory extends Factory
@@ -12,7 +13,7 @@ class OrganizationFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company(),
+            'name' => fake()->unique()->randomElement(ScamEnterprisePool::companyNames()),
             'description' => $this->faker->sentence(),
             'country' => $this->faker->countryCode(),
             'is_active' => $this->faker->boolean(),
