@@ -1,4 +1,13 @@
 {
   "phpunit.command": "\"${cwd}/.vscode/run-phpunit-in-docker.sh\" ${phpargs} \"${phpunit}\" ${phpunitargs}",
-  "phpunit.phpunit": "vendor/bin/phpunit"
+  "phpunit.phpunit": "vendor/bin/phpunit",
+  "Laravel.phpEnvironment": "docker",
+  "Laravel.phpCommand": [
+    "docker",
+    "exec",
+    "-w",
+    "/var/www/backend",
+    "fraudebot-backend-1",
+    "php"
+  ]
 }

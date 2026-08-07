@@ -11,6 +11,7 @@ Route::prefix('public')->group(function () {
     Route::get('organizations/{organization}', [OrganizationController::class, 'show']);
 
     Route::get('scammers', [ScammerController::class, 'index']);
+    Route::get('scammers/{id}', [ScammerController::class, 'show']);
 
     Route::get('reports', [ReportController::class, 'index']);
 

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
-use App\Http\Controllers\Public\ReportController;
+use App\Http\Controllers\Public;
+use App\Http\Controllers\Admin;
+
 use App\Infrastructure\Facebook\FacebookServiceInterface;
 use App\Infrastructure\Facebook\FacebookService;
 
@@ -12,11 +14,9 @@ use App\Infrastructure\TikTok\TikTokService;
 use App\Infrastructure\TikTok\TikTokServiceInterface;
 use App\Infrastructure\Youtube\YoutubeService;
 use App\Infrastructure\Youtube\YoutubeServiceInterface;
-use App\Repositories\Search\PublicSearchRepository;
-use App\Repositories\Search\SearchRepositoryInterface;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
-use App\Http\Controllers\Public;
 
 use App\Repositories\Organization\FrontendOrganizationRepository;
 use App\Repositories\Organization\OrganizationCardRepository;
@@ -24,6 +24,10 @@ use App\Repositories\Organization\OrganizationCardRepositoryInterface;
 use App\Repositories\Organization\OrganizationRepositoryInterface;
 use App\Repositories\Scammer\ScammerCardRepository;
 use App\Repositories\Scammer\ScammerCardRepositoryInterface;
+use App\Repositories\Scammer\PublicScammerRepository;
+use App\Repositories\Scammer\ScammerRepositoryInterface;
+use App\Repositories\Search\PublicSearchRepository;
+use App\Repositories\Search\SearchRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,9 +49,13 @@ class AppServiceProvider extends ServiceProvider
         ->needs(OrganizationRepositoryInterface::class)
         ->give(FrontendOrganizationRepository::class);
 
-        $this->app->when(ReportController::class)
+        $this->app->when(Public\ReportController::class)
         ->needs(SearchRepositoryInterface::class)
         ->give(PublicSearchRepository::class);
+
+        $this->app->when(Public\ScammerController::class)
+        ->needs(ScammerRepositoryInterface::class)
+        ->give(PublicScammerRepository::class);
     }
 
     /**

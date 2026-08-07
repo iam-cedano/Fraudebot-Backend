@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property string $name
+ * @property string $country
+ * @property string $avatar_url
+ * @property boolean $is_active
+ */
 class Scammer extends Model
 {
     use HasFactory, SoftDeletes;
@@ -16,7 +22,8 @@ class Scammer extends Model
     protected $fillable = [
         'name',
         'country',
-        'is_active',
+        'avatar_url',
+        'is_active'
     ];
 
     protected $casts = [
@@ -98,6 +105,7 @@ class Scammer extends Model
             id: $this->id,
             name: $this->name,
             country: $this->country,
+            avatarUrl: $this->avatar_url,
             isActive: $this->is_active,
         );
     }
