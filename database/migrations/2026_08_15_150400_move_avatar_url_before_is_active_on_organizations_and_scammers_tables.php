@@ -11,11 +11,11 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('organizations', function (Blueprint $table) {
-            $table->string('avatar_url', 255)->nullable();
+            $table->string('avatar_url', 255)->nullable()->after('country')->change();
         });
 
         Schema::table('scammers', function (Blueprint $table) {
-            $table->string('avatar_url', 255)->nullable();
+            $table->string('avatar_url', 255)->nullable()->after('country')->change();
         });
     }
 
@@ -25,11 +25,11 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('organizations', function (Blueprint $table) {
-            $table->dropColumn('avatar_url');
+            $table->string('avatar_url', 255)->nullable()->after('updated_at')->change();
         });
 
         Schema::table('scammers', function (Blueprint $table) {
-            $table->dropColumn('avatar_url');
+            $table->string('avatar_url', 255)->nullable()->after('updated_at')->change();
         });
     }
 };

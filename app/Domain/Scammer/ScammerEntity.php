@@ -10,7 +10,7 @@ class ScammerEntity extends Entity
         public readonly ?int $id,
         public readonly string $name,
         public readonly string $country,
-        public readonly string $avatarUrl,
+        public readonly string $avatarPath,
         public readonly bool $isActive,
     ) {
         parent::__construct();
@@ -32,7 +32,7 @@ class ScammerEntity extends Entity
             'id' => $this->id,
             'name' => $this->name,
             'country' => $this->country,
-            'avatar_url' => $this->avatarUrl,
+            'avatar_path' => $this->avatarPath,
             'is_active' => $this->isActive,
         ];
     }

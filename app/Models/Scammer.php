@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * @property string $name
  * @property string $country
- * @property string $avatar_url
+ * @property string $avatar_path
  * @property boolean $is_active
  */
 class Scammer extends Model
@@ -22,7 +22,7 @@ class Scammer extends Model
     protected $fillable = [
         'name',
         'country',
-        'avatar_url',
+        'avatar_path',
         'is_active'
     ];
 
@@ -105,7 +105,7 @@ class Scammer extends Model
             id: $this->id,
             name: $this->name,
             country: $this->country,
-            avatarUrl: $this->avatar_url,
+            avatarPath: $this->avatar_path,
             isActive: $this->is_active,
         );
     }

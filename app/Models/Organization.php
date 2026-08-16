@@ -16,8 +16,8 @@ class Organization extends Model
         'name',
         'description',
         'country',
-        'is_active',
-        'avatar_url'
+        'avatar_path',
+        'is_active'
     ];
 
     protected $casts = [

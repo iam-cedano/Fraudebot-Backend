@@ -87,6 +87,20 @@
       "problemMatcher": []
     },
     {
+      "label": "[Backend] Execute command",
+      "type": "shell",
+      "command": "docker compose exec -T -w /var/www/backend backend sh -c \"${input:backendCommand}\"",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "[Backend] Truncate All Tables",
       "type": "shell",
       "command": "docker compose exec -T -w /var/www/backend backend php artisan db:truncate --force",
@@ -113,7 +127,7 @@
         "focus": true
       },
       "problemMatcher": []
-    }
+    },
   ],
   "inputs": [
     {
@@ -126,6 +140,12 @@
       "id": "artisanCommand",
       "type": "promptString",
       "description": "Artisan command (e.g. php artisan db:seed)",
+      "default": ""
+    },
+    {
+      "id": "backendCommand",
+      "type": "promptString",
+      "description": "Command to run in the backend container (e.g. ls -la, php artisan migrate:status)",
       "default": ""
     },
     {

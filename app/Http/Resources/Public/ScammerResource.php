@@ -2,9 +2,12 @@
 
 namespace App\Http\Resources\Public;
 
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+
 /**
  * @property int $id
  * @property string $name
@@ -13,18 +16,21 @@ use Illuminate\Support\Carbon;
  * @property Collection $reports
  * @property bool $is_active
  * @property Carbon $created_at
- * @property string $avatar_url
+ * @property string $avatar_path
  */
 class ScammerResource extends JsonResource
 {
     public function toArray($request)
     {
+        /** @var FilesystemAdapter $publicDisk */
+        $publicDisk = Storage::disk('public');
+
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'country' => $this->country,
+            'country' => config('countries')[$this->country] ?? 'Unknown',
             'reports' => $this->reportCount,
-            'avatar_url' => $this->avatar_url,
+            'avatar_path' => $this->avatar_path === null ? null : $publicDisk->url($this->avatar_path),
             'products' => $this->reports->pluck('product.name')->filter()->unique()->values()->all(),
             'status' => $this->is_active,
             'created_at' => $this->created_at->format('Y-m-d'),

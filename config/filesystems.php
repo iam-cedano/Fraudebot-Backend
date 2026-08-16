@@ -41,7 +41,12 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'url' => rtrim(
+                env('APP_ENV', 'production') === 'production'
+                ? (env('APP_CDN') ?: env('APP_URL', 'http://localhost'))
+                : env('APP_URL', 'http://localhost'),
+                '/'
+            ) . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

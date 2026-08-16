@@ -9,11 +9,9 @@ use Illuminate\Http\Request;
 
 class ScammerController extends Controller
 {
-    public function __construct(private ScammerRepositoryInterface $scammerRepository) {}
-
-    public function index(Request $request) {
-        return response()->json(['message' => 'Not implemented yet.']);
-    } 
+    public function __construct(private ScammerRepositoryInterface $scammerRepository)
+    {
+    }
 
     public function show(Request $request, int $id)
     {
@@ -23,6 +21,6 @@ class ScammerController extends Controller
             return response()->json(['message' => 'Scammer not found'], 404);
         }
 
-        return new ScammerResource($scammer);
+        return response()->json((new ScammerResource($scammer))->resolve());
     }
 }
