@@ -3,9 +3,9 @@ namespace App\Domain\PaymentMethod\Enums;
 
 enum PaymentMethodType: int
 {
-    case DEPOSIT = 1;
-    case IBAN = 2;
-    case CASH = 3;
-    case CRYPTO = 4;
+    case CARD_NUMBER = 1;
+    case CLABE = 2;
+    case ACCOUNT_NUMBER = 3;
+    case WALLET = 4;
     case OTHER = 5;
 }

@@ -1,6 +1,8 @@
 <?php
 namespace App\Repositories\Scammer;
 
+use App\Domain\Contact\Enums\PlatformType;
+use App\Domain\PaymentMethod\Enums\PaymentMethodType;
 use App\Domain\Scammer\ValueObjects\Clue;
 use App\Domain\Scammer\Enums\ClueType;
 use App\Models\Scammer;
@@ -19,8 +21,6 @@ class ScammerCardRepository implements ScammerCardRepositoryInterface, ClueSearc
             ClueType::AccountNumber => $this->matchByAccountNumber($clue->getValue()),
             ClueType::Phone => $this->matchByPhoneNumber($clue->getValue()),
             ClueType::Url => $this->matchByUrl($clue->getValue()),
-            ClueType::IpAddress => $this->matchByIpAddress($clue->getValue()),
-            ClueType::Username => $this->matchByUsername($clue->getValue()),
             ClueType::Name => $this->matchByName($clue->getValue()),
             ClueType::Nothing => null,
         };
@@ -46,41 +46,43 @@ class ScammerCardRepository implements ScammerCardRepositoryInterface, ClueSearc
 
     public function matchByCardNumber(string $cardNumber): ?Builder
     {
-        return null;
+        return Scammer::query()
+            ->whereRelation('paymentMethods', 'type', PaymentMethodType::CARD_NUMBER)
+            ->whereRelation('paymentMethods', 'reference', $cardNumber);
     }
 
     public function matchByClabe(string $clabe): ?Builder
     {
-        return null;
+        return Scammer::query()
+            ->whereRelation('paymentMethods', 'type', PaymentMethodType::CLABE)
+            ->whereRelation('paymentMethods', 'reference', $clabe);
     }
 
     public function matchByAccountNumber(string $accountNumber): ?Builder
     {
-        return null;
+        return Scammer::query()
+            ->whereRelation('paymentMethods', 'type', PaymentMethodType::ACCOUNT_NUMBER)
+            ->whereRelation('paymentMethods', 'reference', $accountNumber);
     }
 
     public function matchByEmail(string $email): ?Builder
     {
-        return null;
+        return Scammer::query()
+            ->whereRelation('contacts', 'platform', PlatformType::EMAIL)
+            ->whereRelation('contacts', 'reference', $email);
     }
 
     public function matchByPhoneNumber(string $phoneNumber): ?Builder
     {
-        return null;
+        return Scammer::query()
+            ->whereRelation('contacts', 'platform', PlatformType::CELLPHONE)
+            ->whereRelation('contacts', 'reference', $phoneNumber);
     }
 
     public function matchByUrl(string $url): ?Builder
     {
-        return null;
-    }
-
-    public function matchByIpAddress(string $ipAddress): ?Builder
-    {
-        return null;
-    }
-
-    public function matchByUsername(string $username): ?Builder
-    {
-        return null;
+        return Scammer::query()
+            ->whereRelation('contacts', 'platform', PlatformType::URL)
+            ->whereRelation('contacts', 'reference', $url);
     }
 }

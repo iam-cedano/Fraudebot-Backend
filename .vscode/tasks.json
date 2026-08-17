@@ -117,7 +117,7 @@
     {
       "label": "[Backend] Seed Database with Mock Data",
       "type": "shell",
-      "command": "docker compose exec -T -e SEED_SCAMMERS=${input:seedScammers} -e SEED_CONTACTS=${input:seedContacts} -e SEED_ORGANIZATIONS=${input:seedOrganizations} -e SEED_REPORTS=${input:seedReports} -e SEED_USERS=${input:seedUsers} -e SEED_PRODUCTS=${input:seedProducts} -w /var/www/backend backend php artisan db:seed --class=TestSeeder",
+      "command": "docker compose exec -T -e SEED_SCAMMERS=${input:seedScammers} -e SEED_CONTACTS=${input:seedContacts} -e SEED_PAYMENT_METHODS=${input:seedPaymentMethods} -e SEED_ORGANIZATIONS=${input:seedOrganizations} -e SEED_REPORTS=${input:seedReports} -e SEED_USERS=${input:seedUsers} -e SEED_PRODUCTS=${input:seedProducts} -w /var/www/backend backend php artisan db:seed --class=TestSeeder",
       "options": {
         "cwd": "${workspaceFolder}/../docker/"
       },
@@ -158,6 +158,12 @@
       "id": "seedContacts",
       "type": "promptString",
       "description": "SEED_CONTACTS — contacts per scammer/organization",
+      "default": "3"
+    },
+    {
+      "id": "seedPaymentMethods",
+      "type": "promptString",
+      "description": "SEED_PAYMENT_METHODS — payment methods per scammer/organization",
       "default": "3"
     },
     {

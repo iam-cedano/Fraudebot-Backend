@@ -7,6 +7,7 @@ use App\Domain\Contact\Enums\PlatformType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contact extends Model
@@ -14,11 +15,9 @@ class Contact extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'organization_id',
-        'scammer_id',
         'name',
         'platform',
-        'contact',
+        'reference',
         'is_active',
     ];
 
@@ -28,9 +27,7 @@ class Contact extends Model
 
     protected $casts = [
         'id' => 'integer',
-        'organization_id' => 'integer',
-        'scammer_id' => 'integer',
-        'contact' => 'string',
+        'reference' => 'string',
         'name' => 'string',
         'platform' => PlatformType::class,
         'is_active' => 'boolean',
@@ -43,25 +40,31 @@ class Contact extends Model
         );
     }
 
-    public function organization()
+    public function organizations(): BelongsToMany
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsToMany(Organization::class, 'organizations_contacts')
+            ->using(OrganizationContact::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
-    public function scammer()
+    public function scammers(): BelongsToMany
     {
-        return $this->belongsTo(Scammer::class);
+        return $this->belongsToMany(Scammer::class, 'scammers_contacts')
+            ->using(ScammerContact::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     public function toEntity(): ContactEntity
     {
         return new ContactEntity(
             id: $this->id,
-            organizationId: $this->organization_id,
-            scammerId: $this->scammer_id,
             name: $this->name,
             platformType: $this->platform,
-            contact: $this->contact,
+            reference: $this->reference,
             isActive: $this->is_active,
         );
     }

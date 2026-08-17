@@ -42,8 +42,7 @@ class Clue
             return ClueType::AccountNumber;
         }
 
-        $strippedCard = str_replace([' ', '-'], '', $this->value);
-        if (preg_match('/^\d{16}$/', $strippedCard)) {
+        if (preg_match('/^\d{16}$/', $this->value)) {
             return ClueType::CardNumber;
         }
 

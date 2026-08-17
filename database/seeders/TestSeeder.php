@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Contact;
 use App\Models\Organization;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Report;
 use App\Models\Scammer;
@@ -16,13 +17,14 @@ class TestSeeder extends Seeder
     {
         $scammers = (int) env('SEED_SCAMMERS', 1);
         $contacts = (int) env('SEED_CONTACTS', 3);
+        $paymentMethods = (int) env('SEED_PAYMENT_METHODS', 3);
         $organizations = (int) env('SEED_ORGANIZATIONS', 1);
         $reports = (int) env('SEED_REPORTS', 2);
         $users = (int) env('SEED_USERS', 1);
         $products = (int) env('SEED_PRODUCTS', 1);
 
-        if ($scammers == 0 || $contacts == 0 || $organizations == 0 || $reports == 0 || $users == 0 || $products == 0) {
-            $this->command->error('SEED_SCAMMERS, SEED_CONTACTS, SEED_ORGANIZATIONS, SEED_REPORTS, SEED_USERS, and SEED_PRODUCTS must be greater than 0');
+        if ($scammers == 0 || $contacts == 0 || $paymentMethods == 0 || $organizations == 0 || $reports == 0 || $users == 0 || $products == 0) {
+            $this->command->error('SEED_SCAMMERS, SEED_CONTACTS, SEED_PAYMENT_METHODS, SEED_ORGANIZATIONS, SEED_REPORTS, SEED_USERS, and SEED_PRODUCTS must be greater than 0');
 
             exit(1);
         }
@@ -33,7 +35,8 @@ class TestSeeder extends Seeder
         Scammer::factory()
             ->count($scammers)
             ->has(Organization::factory())
-            ->has(Contact::factory()->count($contacts)->state(['organization_id' => null]))
+            ->has(Contact::factory()->count($contacts))
+            ->has(PaymentMethod::factory()->count($paymentMethods))
             ->has(Report::factory()->count($reports)->state(function (array $attributes, Scammer $scammer) use ($userIds, $productIds) {
                 return [
                     'organization_id' => $scammer->organizations()->first()->id,
@@ -45,7 +48,8 @@ class TestSeeder extends Seeder
 
         Organization::factory()
             ->count($organizations)
-            ->has(Contact::factory()->count($contacts)->state(['scammer_id' => null]))
+            ->has(Contact::factory()->count($contacts))
+            ->has(PaymentMethod::factory()->count($paymentMethods))
             ->has(Report::factory()->count($reports)->state(fn() => [
                 'scammer_id' => null,
                 'user_id' => $userIds->random(),

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon $created_at
  * @property string $avatar_path
  */
-class ScammerResource extends JsonResource
+class OrganizationResource extends JsonResource
 {
     public function toArray($request)
     {

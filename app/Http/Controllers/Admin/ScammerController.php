@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Contact\ContactEntity;
 use App\Domain\Contact\Enums\PlatformType;
 use App\Domain\PaymentMethod\Enums\PaymentMethodType;
-use App\Domain\ScammerPaymentMethod\ScammerPaymentMethodEntity;
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use App\Models\Scammer;
@@ -33,11 +32,11 @@ class ScammerController extends Controller
             'contacts' => 'sometimes|array',
             'contacts.*.name' => 'required_with:contacts|string|max:50',
             'contacts.*.platform' => 'required_with:contacts',
-            'contacts.*.contact' => 'required_with:contacts|string|max:100',
+            'contacts.*.reference' => 'required_with:contacts|string|max:255',
             'contacts.*.is_active' => 'boolean',
             'paymentMethods' => 'sometimes|array',
             'paymentMethods.*.reference' => 'required_with:paymentMethods|string|max:255',
-            'paymentMethods.*.payment_type' => 'required_with:paymentMethods',
+            'paymentMethods.*.type' => 'required_with:paymentMethods',
             'paymentMethods.*.is_active' => 'boolean',
         ]);
 
@@ -60,11 +59,9 @@ class ScammerController extends Controller
 
                 $contactEntity = new ContactEntity(
                     id: null,
-                    organizationId: null,
-                    scammerId: $scammer->id,
                     name: $contactData['name'],
                     platformType: $platform,
-                    contact: $contactData['contact'],
+                    reference: $contactData['reference'],
                     isActive: $contactData['is_active'] ?? true,
                 );
                 $scammer->contacts()->create($contactEntity->toArray());
@@ -73,7 +70,7 @@ class ScammerController extends Controller
 
         if ($request->has('paymentMethods')) {
             foreach ($request->input('paymentMethods') as $pmData) {
-                $inputPaymentType = $pmData['payment_type'];
+                $inputPaymentType = $pmData['type'];
                 if (is_numeric($inputPaymentType)) {
                     $paymentMethodType = PaymentMethodType::tryFrom((int)$inputPaymentType) ?? throw new \InvalidArgumentException('Invalid payment method type');
                 } else {
@@ -82,14 +79,11 @@ class ScammerController extends Controller
                     $paymentMethodType = PaymentMethodType::from($paymentMethodNumber);
                 }
 
-                $paymentMethodEntity = new ScammerPaymentMethodEntity(
-                    id: null,
-                    scammerId: $scammer->id,
-                    paymentType: $paymentMethodType,
-                    reference: trim($pmData['reference']),
-                    isActive: $pmData['is_active'] ?? true,
-                );
-                $scammer->paymentMethods()->create($paymentMethodEntity->toArray());
+                $scammer->paymentMethods()->create([
+                    'type' => $paymentMethodType,
+                    'reference' => trim($pmData['reference']),
+                    'is_active' => $pmData['is_active'] ?? true,
+                ]);
             }
         }
 
@@ -153,7 +147,7 @@ class ScammerController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:50',
             'platform' => 'sometimes',
-            'contact' => 'sometimes|string|max:100',
+            'reference' => 'sometimes|string|max:255',
             'is_active' => 'sometimes|boolean',
         ]);
 
@@ -177,11 +171,9 @@ class ScammerController extends Controller
 
         $contactEntity = new ContactEntity(
             id: $contact->id,
-            organizationId: null,
-            scammerId: $contact->scammer_id,
             name: $request->input('name', $contact->name),
             platformType: $platform,
-            contact: $request->input('contact', $contact->contact),
+            reference: $request->input('reference', $contact->reference),
             isActive: $request->input('is_active', $contact->is_active),
         );
 
@@ -189,10 +181,9 @@ class ScammerController extends Controller
 
         return response()->json([
             'id' => $contact->id,
-            'scammer_id' => $contact->scammer_id,
             'name' => $contact->name,
             'platform' => $contact->platform_name,
-            'contact' => $contact->contact,
+            'reference' => $contact->reference,
             'is_active' => $contact->is_active,
             'created_at' => $contact->created_at,
             'updated_at' => $contact->updated_at,
@@ -205,7 +196,7 @@ class ScammerController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:50',
             'platform' => 'required',
-            'contact' => 'required|string|max:100',
+            'reference' => 'required|string|max:255',
             'is_active' => 'boolean',
         ]);
 
@@ -229,11 +220,9 @@ class ScammerController extends Controller
 
         $contact = new ContactEntity(
             id: null,
-            organizationId: null,
-            scammerId: $scammer->id,
             name: $request->input('name'),
             platformType: $platform,
-            contact: $request->input('contact'),
+            reference: $request->input('reference'),
             isActive: $request->input('is_active', true),
         );
 
@@ -241,10 +230,9 @@ class ScammerController extends Controller
 
         return response()->json([
             'id' => $contactModel->id,
-            'scammer_id' => $contactModel->scammer_id,
             'name' => $contactModel->name,
             'platform' => $contactModel->platform_name,
-            'contact' => $contactModel->contact,
+            'reference' => $contactModel->reference,
             'is_active' => $contactModel->is_active,
             'created_at' => $contactModel->created_at,
             'updated_at' => $contactModel->updated_at,
@@ -262,7 +250,7 @@ class ScammerController extends Controller
 
         $validator = Validator::make($request->all(), [
             'reference' => 'required|string|max:255',
-            'payment_type' => 'required',
+            'type' => 'required',
             'is_active' => 'boolean',
         ]);
 
@@ -270,7 +258,7 @@ class ScammerController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $inputPaymentType = $request->input('payment_type');
+        $inputPaymentType = $request->input('type');
 
         $paymentMethodType = null;
 
@@ -284,22 +272,17 @@ class ScammerController extends Controller
             $paymentMethodType = PaymentMethodType::from($paymentMethodNumber);
         }
 
-        $paymentMethod = new ScammerPaymentMethodEntity(
-            id: null,
-            scammerId: $scammer['id'],
-            paymentType: $paymentMethodType,
-            reference: $request->input('reference'),
-            isActive: $request->input('is_active', true),
-        );
-
-
-        if ($scammer->paymentMethods()->where(['reference' => $paymentMethod->reference, 'payment_type' => $paymentMethod->paymentType->value])->exists()) {
+        if ($scammer->paymentMethods()->where(['reference' => $request->input('reference'), 'type' => $paymentMethodType->value])->exists()) {
             return response()->json(['error' => 'Payment method with the same reference already exists for this scammer'], 422);
         }
 
-        $paymentMethodModel = $scammer->paymentMethods()->create($paymentMethod->toArray());
+        $paymentMethodModel = $scammer->paymentMethods()->create([
+            'type' => $paymentMethodType,
+            'reference' => $request->input('reference'),
+            'is_active' => $request->input('is_active', true),
+        ]);
 
-        $response = $paymentMethodModel->only(['id', 'scammer_id', 'reference', 'payment_type_name', 'is_active', 'created_at']);
+        $response = $paymentMethodModel->only(['id', 'reference', 'type_name', 'is_active', 'created_at']);
         $response['updated_at'] = $paymentMethodModel->modified_at;
 
         return response()->json($response, 201);

@@ -15,10 +15,10 @@ use App\Infrastructure\TikTok\TikTokServiceInterface;
 use App\Infrastructure\Youtube\YoutubeService;
 use App\Infrastructure\Youtube\YoutubeServiceInterface;
 
+use App\Repositories\Organization\PublicOrganizationRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 
-use App\Repositories\Organization\FrontendOrganizationRepository;
 use App\Repositories\Organization\OrganizationCardRepository;
 use App\Repositories\Organization\OrganizationCardRepositoryInterface;
 use App\Repositories\Organization\OrganizationRepositoryInterface;
@@ -42,20 +42,21 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(YoutubeServiceInterface::class, YoutubeService::class);
         $this->app->singleton(InstagramServiceInterface::class, InstagramService::class);
         $this->app->singleton(TikTokServiceInterface::class, TikTokService::class);
+
         $this->app->bind(OrganizationCardRepositoryInterface::class, OrganizationCardRepository::class);
         $this->app->bind(ScammerCardRepositoryInterface::class, ScammerCardRepository::class);
 
         $this->app->when(Public\OrganizationController::class)
-        ->needs(OrganizationRepositoryInterface::class)
-        ->give(FrontendOrganizationRepository::class);
+            ->needs(OrganizationRepositoryInterface::class)
+            ->give(PublicOrganizationRepository::class);
 
         $this->app->when(Public\ReportController::class)
-        ->needs(SearchRepositoryInterface::class)
-        ->give(PublicSearchRepository::class);
+            ->needs(SearchRepositoryInterface::class)
+            ->give(PublicSearchRepository::class);
 
         $this->app->when(Public\ScammerController::class)
-        ->needs(ScammerRepositoryInterface::class)
-        ->give(PublicScammerRepository::class);
+            ->needs(ScammerRepositoryInterface::class)
+            ->give(PublicScammerRepository::class);
     }
 
     /**

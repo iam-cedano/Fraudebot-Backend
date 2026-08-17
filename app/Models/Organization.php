@@ -4,8 +4,11 @@ namespace App\Models;
 
 use App\Domain\Organization\OrganizationEntity;
 use App\Repositories\Search\SearchCache;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
@@ -30,8 +33,16 @@ class Organization extends Model
             SearchCache::invalidate();
         });
 
-        static::deleted(function () {
+        static::deleted(function (Organization $organization) {
+            OrganizationContact::query()->where('organization_id', $organization->id)->delete();
+            OrganizationPaymentMethod::query()->where('organization_id', $organization->id)->delete();
+
             SearchCache::invalidate();
+        });
+
+        static::restoring(function (Organization $organization) {
+            OrganizationContact::onlyTrashed()->where('organization_id', $organization->id)->restore();
+            OrganizationPaymentMethod::onlyTrashed()->where('organization_id', $organization->id)->restore();
         });
 
         static::restored(function () {
@@ -39,10 +50,17 @@ class Organization extends Model
         });
     }
 
+    public function reportCount(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->reports()->count(),
+        );
+    }
+
     /**
      * Get the scammers associated with the organization.
      */
-    public function scammers()
+    public function scammers(): BelongsToMany
     {
         return $this->belongsToMany(Scammer::class, 'scammers_organizations');
     }
@@ -50,15 +68,19 @@ class Organization extends Model
     /**
      * Get the contacts associated with the organization.
      */
-    public function contacts()
+    public function contacts(): BelongsToMany
     {
-        return $this->hasMany(Contact::class);
+        return $this->belongsToMany(Contact::class, 'organizations_contacts')
+            ->using(OrganizationContact::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**
      * Get the reports associated with the organization.
      */
-    public function reports()
+    public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
     }
@@ -66,9 +88,13 @@ class Organization extends Model
     /**
      * Get the payment methods associated with the organization.
      */
-    public function paymentMethods()
+    public function paymentMethods(): BelongsToMany
     {
-        return $this->hasMany(PaymentMethod::class);
+        return $this->belongsToMany(PaymentMethod::class, 'organizations_payment_methods')
+            ->using(OrganizationPaymentMethod::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**

@@ -7,6 +7,8 @@ use App\Repositories\Search\SearchCache;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -47,16 +49,16 @@ class Scammer extends Model
             SearchCache::invalidate();
         });
 
-        static::deleted(function ($scammer) {
-            $scammer->contacts()->delete();
-            $scammer->paymentMethods()->delete();
+        static::deleted(function (Scammer $scammer) {
+            ScammerContact::query()->where('scammer_id', $scammer->id)->delete();
+            ScammerPaymentMethod::query()->where('scammer_id', $scammer->id)->delete();
 
             SearchCache::invalidate();
         });
 
-        static::restoring(function ($scammer) {
-            $scammer->contacts()->withTrashed()->restore();
-            $scammer->paymentMethods()->withTrashed()->restore();
+        static::restoring(function (Scammer $scammer) {
+            ScammerContact::onlyTrashed()->where('scammer_id', $scammer->id)->restore();
+            ScammerPaymentMethod::onlyTrashed()->where('scammer_id', $scammer->id)->restore();
         });
 
         static::restored(function () {
@@ -67,23 +69,31 @@ class Scammer extends Model
     /**
      * Get the contacts associated with the scammer.
      */
-    public function contacts()
+    public function contacts(): BelongsToMany
     {
-        return $this->hasMany(Contact::class);
+        return $this->belongsToMany(Contact::class, 'scammers_contacts')
+            ->using(ScammerContact::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**
      * Get the payment methods associated with the scammer.
      */
-    public function paymentMethods()
+    public function paymentMethods(): BelongsToMany
     {
-        return $this->hasMany(PaymentMethod::class);
+        return $this->belongsToMany(PaymentMethod::class, 'scammers_payment_methods')
+            ->using(ScammerPaymentMethod::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**
      * Get the organizations associated with the scammer.
      */
-    public function organizations()
+    public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'scammers_organizations', 'scammer_id', 'organization_id');
     }
@@ -91,7 +101,7 @@ class Scammer extends Model
     /**
      * Get the reports associated with the scammer.
      */
-    public function reports()
+    public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
     }

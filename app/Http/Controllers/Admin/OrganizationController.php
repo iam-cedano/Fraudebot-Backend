@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Domain\OrganizationPaymentMethod\OrganizationPaymentMethodEntity;
 use App\Domain\PaymentMethod\PaymentMethodEntity;
 use App\Domain\PaymentMethod\ValueObjects\Reference;
-use App\Domain\PaymentMethod\Enums\PaymentMethodType;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\BasicOrganizationResource;
 use App\Http\Resources\Admin\BasicPaymentMethodResource;
@@ -121,7 +119,7 @@ class OrganizationController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'reference' => 'required|string|max:255',
-            'payment_type' => 'required',
+            'type' => 'required',
             'is_active' => 'boolean',
         ]);
 
@@ -129,21 +127,17 @@ class OrganizationController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $inputPaymentType = $request->input('payment_type');
+        $inputPaymentType = $request->input('type');
 
         $paymentMethodType = new PaymentMethodEntity($inputPaymentType);
 
         $reference = new Reference($request->input('reference'));
 
-        $paymentMethodEntity = new OrganizationPaymentMethodEntity(
-            id: null,
-            organizationId: $organization->id,
-            reference: $reference->getValue(),
-            paymentType: $paymentMethodType->getValue(),
-            isActive: $request->input('is_active', true),
-        );    
-    
-        $paymentMethod = $organization->paymentMethods()->create($paymentMethodEntity->toArray());
+        $paymentMethod = $organization->paymentMethods()->create([
+            'reference' => $reference->getValue(),
+            'type' => $paymentMethodType->getValue(),
+            'is_active' => $request->input('is_active', true),
+        ]);
 
         $resource = new BasicPaymentMethodResource($paymentMethod);
 

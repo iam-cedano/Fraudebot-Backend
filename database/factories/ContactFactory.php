@@ -4,8 +4,6 @@ namespace Database\Factories;
 
 use App\Domain\Contact\Enums\PlatformType;
 use App\Models\Contact;
-use App\Models\Organization;
-use App\Models\Scammer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,11 +16,9 @@ class ContactFactory extends Factory
     public function definition(): array
     {
         return [
-            'organization_id' => Organization::factory(),
-            'scammer_id' => Scammer::factory(),
             'name' => $this->faker->firstName(),
             'platform' => $this->faker->randomElement(PlatformType::cases()),
-            'contact' => $this->faker->unique()->safeEmail(),
+            'reference' => $this->faker->unique()->safeEmail(),
             'is_active' => true
         ];
     }

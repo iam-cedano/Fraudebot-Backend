@@ -18,6 +18,4 @@ interface ClueSearchInterface
     public function matchByEmail(string $email): ?Builder;
     public function matchByPhoneNumber(string $phoneNumber): ?Builder;
     public function matchByUrl(string $url): ?Builder;
-    public function matchByIpAddress(string $ipAddress): ?Builder;
-    public function matchByUsername(string $username): ?Builder;
 }
