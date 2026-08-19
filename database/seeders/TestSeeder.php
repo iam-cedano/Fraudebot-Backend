@@ -37,21 +37,28 @@ class TestSeeder extends Seeder
             ->has(Organization::factory())
             ->has(Contact::factory()->count($contacts))
             ->has(PaymentMethod::factory()->count($paymentMethods))
-            ->has(Report::factory()->count($reports)->state(function (array $attributes, Scammer $scammer) use ($userIds, $productIds) {
-                return [
-                    'organization_id' => $scammer->organizations()->first()->id,
-                    'user_id' => $userIds->random(),
-                    'product_id' => $productIds->random(),
-                ];
-            }))
+            ->has(Report::factory()->count($reports)->state(fn () => [
+                'user_id' => $userIds->random(),
+                'product_id' => $productIds->random(),
+            ]))
+            ->afterCreating(function (Scammer $scammer) {
+                $organization = $scammer->organizations()->first();
+
+                if ($organization === null) {
+                    return;
+                }
+
+                $organization->reports()->syncWithoutDetaching(
+                    $scammer->reports()->pluck('reports.id')->all(),
+                );
+            })
             ->create();
 
         Organization::factory()
             ->count($organizations)
             ->has(Contact::factory()->count($contacts))
             ->has(PaymentMethod::factory()->count($paymentMethods))
-            ->has(Report::factory()->count($reports)->state(fn() => [
-                'scammer_id' => null,
+            ->has(Report::factory()->count($reports)->state(fn () => [
                 'user_id' => $userIds->random(),
                 'product_id' => $productIds->random(),
             ]))

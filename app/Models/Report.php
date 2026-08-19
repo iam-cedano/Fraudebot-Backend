@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Domain\Report\ReportEntity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Report extends Model
@@ -14,8 +16,6 @@ class Report extends Model
     protected $fillable = [
         'product_id',
         'user_id',
-        'organization_id',
-        'scammer_id',
         'title',
         'description',
         'was_sucessful',
@@ -25,7 +25,7 @@ class Report extends Model
     /**
      * Get the product that owns the report.
      */
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
@@ -33,25 +33,27 @@ class Report extends Model
     /**
      * Get the user that owns the report.
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the organization that owns the report.
-     */
-    public function organization()
+    public function organizations(): BelongsToMany
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsToMany(Organization::class, 'organizations_reports')
+            ->using(OrganizationReport::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
-    /**
-     * Get the scammer that owns the report.
-     */
-    public function scammer()
+    public function scammers(): BelongsToMany
     {
-        return $this->belongsTo(Scammer::class);
+        return $this->belongsToMany(Scammer::class, 'scammers_reports')
+            ->using(ScammerReport::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**
@@ -63,8 +65,6 @@ class Report extends Model
             id: $this->id,
             productId: $this->product_id,
             userId: $this->user_id,
-            organizationId: $this->organization_id,
-            scammerId: $this->scammer_id,
             title: $this->title,
             description: $this->description,
             wasSucessful: $this->was_sucessful,

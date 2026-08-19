@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -52,6 +51,7 @@ class Scammer extends Model
         static::deleted(function (Scammer $scammer) {
             ScammerContact::query()->where('scammer_id', $scammer->id)->delete();
             ScammerPaymentMethod::query()->where('scammer_id', $scammer->id)->delete();
+            ScammerReport::query()->where('scammer_id', $scammer->id)->delete();
 
             SearchCache::invalidate();
         });
@@ -59,6 +59,7 @@ class Scammer extends Model
         static::restoring(function (Scammer $scammer) {
             ScammerContact::onlyTrashed()->where('scammer_id', $scammer->id)->restore();
             ScammerPaymentMethod::onlyTrashed()->where('scammer_id', $scammer->id)->restore();
+            ScammerReport::onlyTrashed()->where('scammer_id', $scammer->id)->restore();
         });
 
         static::restored(function () {
@@ -101,9 +102,13 @@ class Scammer extends Model
     /**
      * Get the reports associated with the scammer.
      */
-    public function reports(): HasMany
+    public function reports(): BelongsToMany
     {
-        return $this->hasMany(Report::class);
+        return $this->belongsToMany(Report::class, 'scammers_reports')
+            ->using(ScammerReport::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**

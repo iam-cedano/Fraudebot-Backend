@@ -3,12 +3,6 @@ namespace App\Repositories\Search;
 
 use Illuminate\Database\Eloquent\Builder;
 
-/**
- * Builds the WHERE-clause-only query for a given clue value, scoped to a
- * single source's Eloquent model. Returning null means "this clue type is
- * not (yet) searchable for this source" and it is excluded from the search
- * entirely (as opposed to a query that matches zero rows).
- */
 interface ClueSearchInterface
 {
     public function matchByName(string $name): ?Builder;

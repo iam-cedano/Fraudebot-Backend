@@ -2,10 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Organization;
 use App\Models\Product;
 use App\Models\Report;
-use App\Models\Scammer;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,8 +19,6 @@ class ReportFactory extends Factory
         return [
             'product_id' => Product::factory(),
             'user_id' => User::factory(),
-            'organization_id' => Organization::factory(),
-            'scammer_id' => Scammer::factory(),
             'title' => $this->faker->sentence(3),
             'description' => $this->faker->paragraph(),
             'was_sucessful' => false,

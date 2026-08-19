@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
@@ -36,6 +35,7 @@ class Organization extends Model
         static::deleted(function (Organization $organization) {
             OrganizationContact::query()->where('organization_id', $organization->id)->delete();
             OrganizationPaymentMethod::query()->where('organization_id', $organization->id)->delete();
+            OrganizationReport::query()->where('organization_id', $organization->id)->delete();
 
             SearchCache::invalidate();
         });
@@ -43,6 +43,7 @@ class Organization extends Model
         static::restoring(function (Organization $organization) {
             OrganizationContact::onlyTrashed()->where('organization_id', $organization->id)->restore();
             OrganizationPaymentMethod::onlyTrashed()->where('organization_id', $organization->id)->restore();
+            OrganizationReport::onlyTrashed()->where('organization_id', $organization->id)->restore();
         });
 
         static::restored(function () {
@@ -80,9 +81,13 @@ class Organization extends Model
     /**
      * Get the reports associated with the organization.
      */
-    public function reports(): HasMany
+    public function reports(): BelongsToMany
     {
-        return $this->hasMany(Report::class);
+        return $this->belongsToMany(Report::class, 'organizations_reports')
+            ->using(OrganizationReport::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**
