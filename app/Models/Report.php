@@ -21,7 +21,6 @@ class Report extends Model
         'was_sucessful',
         'is_active',
     ];
-
     /**
      * Get the product that owns the report.
      */

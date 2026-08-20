@@ -13,14 +13,33 @@ class ScammerController extends Controller
     {
     }
 
-    public function show(Request $request, int $id)
+    public function show(Request $request, string $id)
     {
-        $scammer = $this->scammerRepository->findScammerById($id);
+        if (filter_var($id, FILTER_VALIDATE_INT) === false) {
+            return response()->json(['message' => 'Invalid scammer ID'], 400);
+        }
+
+        $scammer = $this->scammerRepository->findScammerById((int) $id);
 
         if (!$scammer) {
             return response()->json(['message' => 'Scammer not found'], 404);
         }
 
         return response()->json((new ScammerResource($scammer))->resolve());
+    }
+
+    public function calendar(Request $request, string $id, string $year)
+    {
+        if (filter_var($id, FILTER_VALIDATE_INT) === false || filter_var($year, FILTER_VALIDATE_INT) === false) {
+            return response()->json(['message' => 'Invalid scammer ID or year'], 400);
+        }
+
+        $calendar = $this->scammerRepository->findCalendarByScammerIdAndYear((int) $id, (int) $year);
+
+        if (!$calendar) {
+            return response()->json(['message' => 'Scammer not found'], 404);
+        }
+
+        return response()->json($calendar);
     }
 }
