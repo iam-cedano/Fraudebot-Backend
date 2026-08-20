@@ -108,14 +108,7 @@ class PublicReportControllerTest extends TestCase
             [
                 'id' => 1,
                 'name' => 'John Doe',
-                'reports' => collect([
-                    [
-                        'id' => 1,
-                        'product' => [
-                            'name' => 'Invertions',
-                        ],
-                    ],
-                ]),
+                'reports' => 2,
                 'country' => 'MX',
                 'products' => collect(['Invertions', 'Crypto', 'NFT']),
                 'organizations' => collect(['Ecohuertas']),
@@ -125,26 +118,7 @@ class PublicReportControllerTest extends TestCase
             [
                 'id' => 2,
                 'name' => 'Ecohuertas',
-                'reports' => collect([
-                    [
-                        'id' => 1,
-                        'product' => [
-                            'name' => 'Crypto',
-                        ],
-                    ],
-                    [
-                        'id' => 2,
-                        'product' => [
-                            'name' => 'NFT',
-                        ],
-                    ],
-                    [
-                        'id' => 3,
-                        'product' => [
-                            'name' => 'Invertions',
-                        ],
-                    ]
-                ]),
+                'reports' => 5,
                 'country' => 'MX',
                 'products' => collect(['Crypto', 'NFT', 'Invertions']),
                 'type' => 'organization',

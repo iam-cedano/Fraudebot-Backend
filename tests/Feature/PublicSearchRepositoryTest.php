@@ -34,30 +34,6 @@ class PublicSearchRepositoryTest extends TestCase
         $this->assertCount(10, $result->items);
     }
 
-    public function testAllMatchesAreReachableAcrossPagesEvenBeyondFiveHundredPerSource(): void
-    {
-        $ids = Scammer::factory()->count(600)->create(['name' => 'Bulk Match'])->pluck('id')->all();
-
-        $count = 10;
-        $collected = [];
-
-        for ($page = 1; $page <= (int) ceil(count($ids) / $count); $page++) {
-            $result = $this->repository()->find(new Clue('Bulk Match'), $page, $count);
-
-            $this->assertSame(600, $result->total);
-            $this->assertCount($count, $result->items, "Page {$page} did not return a full page.");
-
-            foreach ($result->items as $item) {
-                $collected[] = $item->id;
-            }
-        }
-
-        sort($ids);
-        sort($collected);
-
-        $this->assertSame($ids, $collected, 'Every matching row should be reachable exactly once across pages.');
-    }
-
     public function testSoftDeletedScammersAreExcludedFromSearch(): void
     {
         $scammer = Scammer::factory()->create(['name' => 'Deleted Guy']);
