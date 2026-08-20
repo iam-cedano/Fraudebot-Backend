@@ -14,8 +14,25 @@ class ReportFactory extends Factory
 {
     protected $model = Report::class;
 
+    private static int $monthOffset = 0;
+
     public function definition(): array
     {
+        $latest = now()->startOfMonth();
+        $earliest = now()->setYear(2020)->startOfYear();
+        $monthCount = (int) $earliest->diffInMonths($latest) + 1;
+
+        $createdAt = $latest->copy()->subMonths(self::$monthOffset % $monthCount);
+        $createdAt = $createdAt
+            ->setDay(fake()->numberBetween(1, $createdAt->daysInMonth))
+            ->setTime(
+                fake()->numberBetween(8, 20),
+                fake()->numberBetween(0, 59),
+                fake()->numberBetween(0, 59),
+            );
+
+        self::$monthOffset++;
+
         return [
             'product_id' => Product::factory(),
             'user_id' => User::factory(),
@@ -23,6 +40,8 @@ class ReportFactory extends Factory
             'description' => $this->faker->paragraph(),
             'was_sucessful' => false,
             'is_active' => true,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
         ];
     }
 }
