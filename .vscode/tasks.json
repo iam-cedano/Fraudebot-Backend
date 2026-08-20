@@ -128,6 +128,20 @@
       },
       "problemMatcher": []
     },
+    {
+      "label": "[Cache] Clear Cache",
+      "type": "shell",
+      "command": "docker compose exec -T -w / cache redis-cli FLUSHALL",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker/"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
   ],
   "inputs": [
     {
