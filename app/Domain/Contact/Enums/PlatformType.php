@@ -13,4 +13,16 @@ enum PlatformType: int
     case TELEGRAM = 7;
     case INSTAGRAM = 8;
     case URL = 9;
+    case OTHER = 10;
+
+    public static function tryFromName(string $name): ?self
+    {
+        foreach (self::cases() as $case) {
+            if (strcasecmp($case->name, $name) === 0) {
+                return $case;
+            }
+        }
+
+        return null;
+    }
 }

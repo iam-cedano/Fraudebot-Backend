@@ -12,6 +12,7 @@ Route::prefix('public')->group(function () {
 
     Route::get('scammers/{id}', [ScammerController::class, 'show']);
     Route::get('scammers/{id}/calendar/{year}', [ScammerController::class, 'calendar']);
+    Route::get('scammers/{id}/contacts', [ScammerController::class, 'contacts']);
 
     Route::get('reports', [ReportController::class, 'index']);
 
