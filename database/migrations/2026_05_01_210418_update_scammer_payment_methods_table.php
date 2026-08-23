@@ -15,6 +15,10 @@ return new class extends Migration
             $table->index('reference');
         });
 
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('scammers', function (Blueprint $table) {
             $table->fullText('name');
         });
@@ -32,6 +36,10 @@ return new class extends Migration
         Schema::table('scammer_payment_methods', function (Blueprint $table) {
             $table->dropIndex('scammer_payment_methods_reference_index');
         });
+
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
 
         Schema::table('scammers', function (Blueprint $table) {
             $table->dropFullText('scammers_name_fulltext');

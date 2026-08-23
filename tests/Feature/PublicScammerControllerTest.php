@@ -6,7 +6,6 @@ use App\Http\Resources\Public\ContactResource;
 use App\Models\Contact;
 use App\Models\Scammer;
 use App\Http\Resources\Public\ScammerResource;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PublicScammerControllerTest extends TestCase

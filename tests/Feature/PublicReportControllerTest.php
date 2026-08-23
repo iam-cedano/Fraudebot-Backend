@@ -9,6 +9,8 @@ use App\Http\Controllers\Public\ReportController;
 use App\Http\Resources\Public\ReportCardResource;
 use App\Models\Organization;
 use App\Models\Scammer;
+use App\Models\Report;
+use App\Models\Product;
 use App\Repositories\Search\SearchRepositoryInterface;
 use Illuminate\Http\Request;
 use Tests\TestCase;
@@ -108,19 +110,19 @@ class PublicReportControllerTest extends TestCase
             [
                 'id' => 1,
                 'name' => 'John Doe',
-                'reports' => 2,
+                'reports' => collect([Report::factory()->create(), Report::factory()->create()]),
                 'country' => 'MX',
-                'products' => collect(['Invertions', 'Crypto', 'NFT']),
-                'organizations' => collect(['Ecohuertas']),
+                'products' => collect([Product::factory()->create(), Product::factory()->create(), Product::factory()->create()]),
+                'organizations' => collect([Organization::factory()->create()]),
                 'type' => 'scammer',
                 'is_active' => true,
             ],
             [
                 'id' => 2,
                 'name' => 'Ecohuertas',
-                'reports' => 5,
+                'reports' => collect([Report::factory()->create(), Report::factory()->create(), Report::factory()->create(), Report::factory()->create(), Report::factory()->create()]),
                 'country' => 'MX',
-                'products' => collect(['Crypto', 'NFT', 'Invertions']),
+                'products' => collect([Product::factory()->create(), Product::factory()->create(), Product::factory()->create()]),
                 'type' => 'organization',
                 'is_active' => true,
             ],

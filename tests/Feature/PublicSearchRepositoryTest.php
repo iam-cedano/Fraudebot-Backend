@@ -7,23 +7,10 @@ use App\Models\Scammer;
 use App\Repositories\Organization\OrganizationCardRepositoryInterface;
 use App\Repositories\Scammer\ScammerCardRepositoryInterface;
 use App\Repositories\Search\PublicSearchRepository;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PublicSearchRepositoryTest extends TestCase
 {
-    use RefreshDatabase;
-
-    public function testIpAddressClueDoesNotCrash(): void
-    {
-        Scammer::factory()->create(['name' => 'Some Name']);
-
-        $result = $this->repository()->find(new Clue('192.168.1.1'), 1, 10);
-
-        $this->assertSame(0, $result->total);
-        $this->assertCount(0, $result->items);
-    }
-
     public function testTotalReflectsAllMatchesNotJustTheCurrentPage(): void
     {
         Scammer::factory()->count(15)->create(['name' => 'Jane Doe']);

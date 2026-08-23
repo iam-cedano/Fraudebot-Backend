@@ -2,11 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\Public\OrganizationController;
 use App\Http\Resources\Public\OrganizationResource;
 use App\Models\Organization;
-use App\Repositories\Organization\OrganizationRepositoryInterface;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Report;
 use Tests\TestCase;
 
 class PublicOrganizationControllerTest extends TestCase
@@ -16,23 +14,7 @@ class PublicOrganizationControllerTest extends TestCase
         /**
          * @var Organization $organization
          */
-        $organization = new class extends Organization {
-            public function reportCount(): Attribute
-            {
-                return Attribute::make(get: fn () => $this->reports->count());
-            }
-        };
-        $organization->forceFill([
-            'id' => 1,
-            'name' => 'Ecohuertas',
-            'country' => 'MX',
-            'avatar_path' => null,
-            'is_active' => true,
-            'created_at' => '2026-08-19 12:00:00',
-        ]);
-        $organization->setRelation('reports', collect());
-
-        $this->bindOrganizationRepository($organization);
+        $organization = Organization::factory()->create();
 
         $response = $this->getJson("/api/public/organizations/{$organization->id}");
 
@@ -58,20 +40,22 @@ class PublicOrganizationControllerTest extends TestCase
 
     public function testFindOrganizationCalendarByIdAndYear(): void
     {
+        /**
+         * @var Organization $organization
+         */
+        $organization = Organization::factory()->create();
+
+        $reports = Report::factory()->count(3)->create([
+            'created_at' => '2026-01-15 12:00:00',
+            'updated_at' => '2026-01-15 12:00:00',
+        ]);
+
+        $organization->reports()->attach($reports->pluck('id'));
+
         $calendar = collect(range(1, 12))
-            ->mapWithKeys(fn (int $month) => [$month => $month === 1 ? 3 : 0]);
+            ->mapWithKeys(fn(int $month) => [$month => $month === 1 ? 3 : 0]);
 
-        $repository = $this->createMock(OrganizationRepositoryInterface::class);
-        $repository->expects($this->once())
-            ->method('findCalendarByOrganizationIdAndYear')
-            ->with(1, 2026)
-            ->willReturn($calendar);
-
-        $this->app->when(OrganizationController::class)
-            ->needs(OrganizationRepositoryInterface::class)
-            ->give(fn () => $repository);
-
-        $response = $this->getJson('/api/public/organizations/1/calendar/2026');
+        $response = $this->getJson("/api/public/organizations/{$organization->id}/calendar/2026");
 
         $response->assertStatus(200);
         $response->assertExactJson($calendar->toArray());
@@ -99,18 +83,5 @@ class PublicOrganizationControllerTest extends TestCase
 
         $response->assertStatus(404);
         $response->assertExactJson(['message' => 'Organization not found']);
-    }
-
-    private function bindOrganizationRepository(Organization $organization): void
-    {
-        $repository = $this->createMock(OrganizationRepositoryInterface::class);
-        $repository->expects($this->once())
-            ->method('findOrganizationById')
-            ->with($organization->id)
-            ->willReturn($organization);
-
-        $this->app->when(OrganizationController::class)
-            ->needs(OrganizationRepositoryInterface::class)
-            ->give(fn () => $repository);
     }
 }
