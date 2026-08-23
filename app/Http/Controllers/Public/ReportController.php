@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Public;
 
-use App\Http\Controllers\Controller;
 use App\Domain\Scammer\ValueObjects\Clue;
+use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\ReportCardResource;
 use App\Repositories\Search\SearchRepositoryInterface;
 use Illuminate\Http\JsonResponse;
@@ -11,9 +11,7 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function __construct(private SearchRepositoryInterface $searchRepository)
-    {
-    }
+    public function __construct(private SearchRepositoryInterface $searchRepository) {}
 
     public function index(Request $request): JsonResponse
     {

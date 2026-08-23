@@ -15,7 +15,7 @@ return new class extends Migration
             return;
         }
 
-        DB::statement("ALTER TABLE scammer_payment_methods MODIFY COLUMN payment_type TINYINT UNSIGNED NOT NULL AFTER reference;");
+        DB::statement('ALTER TABLE scammer_payment_methods MODIFY COLUMN payment_type TINYINT UNSIGNED NOT NULL AFTER reference;');
     }
 
     /**
@@ -27,6 +27,6 @@ return new class extends Migration
             return;
         }
 
-        DB::statement("ALTER TABLE scammer_payment_methods MODIFY COLUMN payment_type TINYINT UNSIGNED NOT NULL AFTER updated_at;");
+        DB::statement('ALTER TABLE scammer_payment_methods MODIFY COLUMN payment_type TINYINT UNSIGNED NOT NULL AFTER updated_at;');
     }
 };

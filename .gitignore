@@ -18,6 +18,9 @@
 /storage/*.key
 /storage/pail
 /vendor
+/fraudebot_db
+/*.sqlite
+/*.sqlite3
 Homestead.json
 Homestead.yaml
 Thumbs.db

@@ -25,4 +25,13 @@ enum PlatformType: int
 
         return null;
     }
+
+    public static function tryFromInput(mixed $value): ?self
+    {
+        if (is_int($value) || (is_string($value) && ctype_digit($value))) {
+            return self::tryFrom((int) $value);
+        }
+
+        return is_string($value) ? self::tryFromName($value) : null;
+    }
 }

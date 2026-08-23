@@ -24,7 +24,7 @@ class TruncateTablesCommand extends Command
 
     public function handle(): int
     {
-        if ($this->isProhibited() || !$this->confirmToProceed()) {
+        if ($this->isProhibited() || ! $this->confirmToProceed()) {
             return self::FAILURE;
         }
 
@@ -33,7 +33,7 @@ class TruncateTablesCommand extends Command
         $excluded = ['migrations'];
 
         $tables = collect($schema->getTableListing(schemaQualified: false))
-            ->reject(fn(string $table) => in_array($table, $excluded, true))
+            ->reject(fn (string $table) => in_array($table, $excluded, true))
             ->values();
 
         if ($tables->isEmpty()) {

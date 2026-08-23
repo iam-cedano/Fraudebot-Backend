@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class PublicScammerControllerTest extends TestCase
 {
-    public function testFindScammerById(): void
+    public function test_find_scammer_by_id(): void
     {
         /**
          * @var Scammer $scammer
@@ -24,23 +24,23 @@ class PublicScammerControllerTest extends TestCase
         $response->assertExactJson(ScammerResource::make($scammer)->resolve());
     }
 
-    public function testFindScammerByInvalidIdReturns400(): void
+    public function test_find_scammer_by_invalid_id_returns400(): void
     {
-        $response = $this->getJson("/api/public/scammers/9999999999999999999999999999999999999999");
+        $response = $this->getJson('/api/public/scammers/9999999999999999999999999999999999999999');
 
         $response->assertStatus(400);
         $response->assertExactJson(['message' => 'Invalid scammer ID']);
     }
 
-    public function testFindScammerByNonExistentIdReturns404(): void
+    public function test_find_scammer_by_non_existent_id_returns404(): void
     {
-        $response = $this->getJson("/api/public/scammers/0");
+        $response = $this->getJson('/api/public/scammers/0');
 
         $response->assertStatus(404);
         $response->assertExactJson(['message' => 'Scammer not found']);
     }
 
-    public function testFindScammerContactsById(): void
+    public function test_find_scammer_contacts_by_id(): void
     {
         $scammer = Scammer::factory()->create();
 
@@ -63,7 +63,7 @@ class PublicScammerControllerTest extends TestCase
         $response->assertExactJson($expected);
     }
 
-    public function testFindScammerContactsByIdWithPlatformQueryParam(): void
+    public function test_find_scammer_contacts_by_id_with_platform_query_param(): void
     {
         $scammer = Scammer::factory()->create();
         $contacts = Contact::factory()->createMany([
@@ -104,7 +104,42 @@ class PublicScammerControllerTest extends TestCase
         $response->assertExactJson($expected);
     }
 
-    public function testFindScammerContactsByIdWithInvalidPageReturns404(): void
+    public function test_contacts_total_reflects_all_matching_rows(): void
+    {
+        $scammer = Scammer::factory()->create();
+        $contacts = Contact::factory()->count(15)->create();
+        $scammer->contacts()->attach($contacts);
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/contacts?p=1&c=10")
+            ->assertOk()
+            ->assertJsonCount(10, 'data')
+            ->assertJsonPath('total', 15);
+    }
+
+    public function test_contact_pagination_is_bounded(): void
+    {
+        $scammer = Scammer::factory()->create();
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/contacts?p=0&c=101")
+            ->assertBadRequest();
+    }
+
+    public function test_contact_changes_invalidate_cached_public_contacts(): void
+    {
+        $scammer = Scammer::factory()->create();
+        $contact = Contact::factory()->create(['name' => 'Before']);
+        $scammer->contacts()->attach($contact);
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/contacts")
+            ->assertJsonPath('data.0.name', 'Before');
+
+        $contact->update(['name' => 'After']);
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/contacts")
+            ->assertJsonPath('data.0.name', 'After');
+    }
+
+    public function test_find_scammer_contacts_by_id_with_invalid_page_returns404(): void
     {
         $page = 1;
         $count = 10;
@@ -115,7 +150,7 @@ class PublicScammerControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Contacts not found']);
     }
 
-    public function testFindScammerContactsByIdWithInvalidPageQueryParamReturns400(): void
+    public function test_find_scammer_contacts_by_id_with_invalid_page_query_param_returns400(): void
     {
         $page = 'invalid-page';
         $count = 10;
@@ -126,7 +161,7 @@ class PublicScammerControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Invalid scammer ID, page or count']);
     }
 
-    public function testFindScammerContactsByIdWithInvalidCountQueryParamReturns400(): void
+    public function test_find_scammer_contacts_by_id_with_invalid_count_query_param_returns400(): void
     {
         $page = 1;
         $count = 'invalid-count';
@@ -137,7 +172,7 @@ class PublicScammerControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Invalid scammer ID, page or count']);
     }
 
-    public function testFindScammerContactsByIdWithInvalidScammerIdParamReturns400(): void
+    public function test_find_scammer_contacts_by_id_with_invalid_scammer_id_param_returns400(): void
     {
         $page = 1;
         $count = 10;

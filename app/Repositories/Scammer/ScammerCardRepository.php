@@ -1,16 +1,17 @@
 <?php
+
 namespace App\Repositories\Scammer;
 
 use App\Domain\Contact\Enums\PlatformType;
 use App\Domain\PaymentMethod\Enums\PaymentMethodType;
-use App\Domain\Scammer\ValueObjects\Clue;
 use App\Domain\Scammer\Enums\ClueType;
+use App\Domain\Scammer\ValueObjects\Clue;
 use App\Models\Scammer;
 use App\Repositories\Search\ClueSearchInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
-class ScammerCardRepository implements ScammerCardRepositoryInterface, ClueSearchInterface
+class ScammerCardRepository implements ClueSearchInterface, ScammerCardRepositoryInterface
 {
     public function matchQuery(Clue $clue): ?Builder
     {
@@ -34,55 +35,70 @@ class ScammerCardRepository implements ScammerCardRepositoryInterface, ClueSearc
 
         return Scammer::query()
             ->whereIn('id', $ids)
-            ->with(['organizations', 'reports.products'])
-            ->get(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
+            ->where('is_active', true)
+            ->select(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
+            ->with(['organizations', 'reports' => fn ($query) => $query->where('is_active', true)->with('products')])
+            ->withCount(['reports' => fn ($query) => $query->where('is_active', true)])
+            ->get()
             ->keyBy('id');
     }
 
     public function matchByName(string $name): ?Builder
     {
-        return Scammer::query()->where('name', 'LIKE', "%{$name}%");
+        $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $name);
+
+        return Scammer::query()
+            ->where('is_active', true)
+            ->whereRaw("name LIKE ? ESCAPE '!'", ["%{$escaped}%"]);
     }
 
     public function matchByCardNumber(string $cardNumber): ?Builder
     {
-        return Scammer::query()
-            ->whereRelation('paymentMethods', 'type', PaymentMethodType::CARD_NUMBER)
-            ->whereRelation('paymentMethods', 'reference', $cardNumber);
+        return $this->matchPaymentMethod(PaymentMethodType::CARD_NUMBER, $cardNumber);
     }
 
     public function matchByClabe(string $clabe): ?Builder
     {
-        return Scammer::query()
-            ->whereRelation('paymentMethods', 'type', PaymentMethodType::CLABE)
-            ->whereRelation('paymentMethods', 'reference', $clabe);
+        return $this->matchPaymentMethod(PaymentMethodType::CLABE, $clabe);
     }
 
     public function matchByAccountNumber(string $accountNumber): ?Builder
     {
-        return Scammer::query()
-            ->whereRelation('paymentMethods', 'type', PaymentMethodType::ACCOUNT_NUMBER)
-            ->whereRelation('paymentMethods', 'reference', $accountNumber);
+        return $this->matchPaymentMethod(PaymentMethodType::ACCOUNT_NUMBER, $accountNumber);
     }
 
     public function matchByEmail(string $email): ?Builder
     {
-        return Scammer::query()
-            ->whereRelation('contacts', 'platform', PlatformType::EMAIL)
-            ->whereRelation('contacts', 'reference', $email);
+        return $this->matchContact(PlatformType::EMAIL, $email);
     }
 
     public function matchByPhoneNumber(string $phoneNumber): ?Builder
     {
-        return Scammer::query()
-            ->whereRelation('contacts', 'platform', PlatformType::CELLPHONE)
-            ->whereRelation('contacts', 'reference', $phoneNumber);
+        return $this->matchContact(PlatformType::CELLPHONE, $phoneNumber);
     }
 
     public function matchByUrl(string $url): ?Builder
     {
+        return $this->matchContact(PlatformType::URL, $url);
+    }
+
+    private function matchPaymentMethod(PaymentMethodType $type, string $reference): Builder
+    {
         return Scammer::query()
-            ->whereRelation('contacts', 'platform', PlatformType::URL)
-            ->whereRelation('contacts', 'reference', $url);
+            ->where('is_active', true)
+            ->whereHas('paymentMethods', fn (Builder $query) => $query
+                ->where('type', $type)
+                ->where('reference', $reference)
+                ->where('is_active', true));
+    }
+
+    private function matchContact(PlatformType $platform, string $reference): Builder
+    {
+        return Scammer::query()
+            ->where('is_active', true)
+            ->whereHas('contacts', fn (Builder $query) => $query
+                ->where('platform', $platform)
+                ->where('reference', $reference)
+                ->where('is_active', true));
     }
 }

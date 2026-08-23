@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\InvalidatesPublicCache;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 abstract class SoftDeletingPivot extends Pivot
 {
-    use SoftDeletes;
+    use InvalidatesPublicCache, SoftDeletes;
 
     public $incrementing = true;
 

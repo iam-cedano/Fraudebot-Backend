@@ -6,13 +6,20 @@ use App\Domain\Scammer\Enums\ClueType;
 
 class Clue
 {
-    public function __construct(private readonly string|null $value)
+    private readonly ?string $value;
+
+    public function __construct(?string $value)
     {
+        $this->value = $value === null ? null : trim($value);
     }
 
     public function getValue(): string
     {
-        return $this->value;
+        if ($this->getType() === ClueType::Phone) {
+            return preg_replace('/\D+/', '', $this->value) ?? '';
+        }
+
+        return $this->value ?? '';
     }
 
     public function getType(): ClueType
@@ -27,7 +34,7 @@ class Clue
         }
 
         if (filter_var($this->value, FILTER_VALIDATE_IP)) {
-            return ClueType::IpAddress;
+            return ClueType::Nothing;
         }
 
         if (filter_var($this->value, FILTER_VALIDATE_URL) || preg_match('/^(?!:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/i', $this->value) || preg_match('/^(http|https):\/\/[^ "]+$/i', $this->value)) {
@@ -51,6 +58,6 @@ class Clue
             return ClueType::Phone;
         }
 
-        return ClueType::Name;
+        return mb_strlen($this->value) >= 2 ? ClueType::Name : ClueType::Nothing;
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Organization\OrganizationEntity;
-use App\Repositories\Search\SearchCache;
+use App\Models\Concerns\InvalidatesPublicCache;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,14 +12,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, InvalidatesPublicCache, SoftDeletes;
 
     protected $fillable = [
         'name',
         'description',
         'country',
         'avatar_path',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
@@ -28,16 +28,10 @@ class Organization extends Model
 
     protected static function booted()
     {
-        static::saved(function () {
-            SearchCache::invalidate();
-        });
-
         static::deleted(function (Organization $organization) {
             OrganizationContact::query()->where('organization_id', $organization->id)->delete();
             OrganizationPaymentMethod::query()->where('organization_id', $organization->id)->delete();
             OrganizationReport::query()->where('organization_id', $organization->id)->delete();
-
-            SearchCache::invalidate();
         });
 
         static::restoring(function (Organization $organization) {
@@ -45,16 +39,13 @@ class Organization extends Model
             OrganizationPaymentMethod::onlyTrashed()->where('organization_id', $organization->id)->restore();
             OrganizationReport::onlyTrashed()->where('organization_id', $organization->id)->restore();
         });
-
-        static::restored(function () {
-            SearchCache::invalidate();
-        });
     }
 
     public function reportCount(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->reports()->count(),
+            get: fn () => (int) ($this->attributes['reports_count']
+                ?? ($this->relationLoaded('reports') ? $this->reports->count() : 0)),
         );
     }
 

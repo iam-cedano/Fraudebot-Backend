@@ -8,9 +8,9 @@ use App\Domain\Search\ValueObjects\CardSearchResult;
 use App\Http\Controllers\Public\ReportController;
 use App\Http\Resources\Public\ReportCardResource;
 use App\Models\Organization;
-use App\Models\Scammer;
-use App\Models\Report;
 use App\Models\Product;
+use App\Models\Report;
+use App\Models\Scammer;
 use App\Repositories\Search\SearchRepositoryInterface;
 use Illuminate\Http\Request;
 use Tests\TestCase;
@@ -19,7 +19,7 @@ use function count;
 
 class PublicReportControllerTest extends TestCase
 {
-    public function testReportSearchByClabe(): void
+    public function test_report_search_by_clabe(): void
     {
         $this->assertReportSearch(
             '0123450123456789',
@@ -27,7 +27,7 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
-    public function testReportSearchByCardNumber(): void
+    public function test_report_search_by_card_number(): void
     {
         $this->assertReportSearch(
             '4152313732125521',
@@ -35,7 +35,7 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
-    public function testReportSearchByAccountNumber(): void
+    public function test_report_search_by_account_number(): void
     {
         $this->assertReportSearch(
             '0123456789',
@@ -43,7 +43,7 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
-    public function testReportSearchByEmail(): void
+    public function test_report_search_by_email(): void
     {
         $this->assertReportSearch(
             'test@example.com',
@@ -51,7 +51,7 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
-    public function testReportSearchByPhone(): void
+    public function test_report_search_by_phone(): void
     {
         $this->assertReportSearch(
             '525512345678',
@@ -59,7 +59,7 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
-    public function testReportSearchByUrl(): void
+    public function test_report_search_by_url(): void
     {
         $this->assertReportSearch(
             'https://example.com',
@@ -67,7 +67,7 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
-    public function testReportSearchByDomain(): void
+    public function test_report_search_by_domain(): void
     {
         $this->assertReportSearch(
             'example.com',
@@ -75,25 +75,25 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
-    public function testReportSearchByIpAddress(): void
+    public function test_report_search_by_ip_address(): void
     {
         $this->assertReportSearch(
             '192.168.1.1',
-            $this->defaultReportData(),
+            [],
         );
     }
 
-    public function testReportSearchByEmptyQuery(): void
+    public function test_report_search_by_empty_query(): void
     {
         $this->assertReportSearch('', []);
     }
 
-    public function testReportSearchByNullQuery(): void
+    public function test_report_search_by_null_query(): void
     {
         $this->assertReportSearch(null, []);
     }
 
-    public function testReportSearchByGeneralQuery(): void
+    public function test_report_search_by_general_query(): void
     {
         $this->assertReportSearch(
             'John Doe',
@@ -130,10 +130,10 @@ class PublicReportControllerTest extends TestCase
     }
 
     /**
-     * @param array<int, array<string, mixed>> $expectedData
+     * @param  array<int, array<string, mixed>>  $expectedData
      */
     private function assertReportSearch(
-        string|null $query,
+        ?string $query,
         array $expectedData,
         int $page = 1,
         int $count = 10,
@@ -141,8 +141,8 @@ class PublicReportControllerTest extends TestCase
         $searchRepositoryMock = $this->createMock(SearchRepositoryInterface::class);
 
         $clueMatcher = $query === null
-            ? $this->callback(fn(Clue $clue) => $clue->getType() === ClueType::Nothing)
-            : $this->callback(fn(Clue $clue) => $clue->getValue() === $query);
+            ? $this->callback(fn (Clue $clue) => $clue->getType() === ClueType::Nothing)
+            : $this->callback(fn (Clue $clue) => $clue->getValue() === $query);
 
         $models = $this->makeReportModels($expectedData);
 
@@ -174,15 +174,15 @@ class PublicReportControllerTest extends TestCase
     }
 
     /**
-     * @param array<int, array<string, mixed>> $items
+     * @param  array<int, array<string, mixed>>  $items
      * @return array<int, Scammer|Organization>
      */
     private function makeReportModels(array $items): array
     {
         return array_map(function (array $item): Scammer|Organization {
             $model = $item['type'] === 'scammer'
-                ? new Scammer()
-                : new Organization();
+                ? new Scammer
+                : new Organization;
 
             $model->forceFill([
                 'id' => $item['id'],

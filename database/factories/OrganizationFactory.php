@@ -16,7 +16,12 @@ class OrganizationFactory extends Factory
             'name' => fake()->unique()->randomElement(ScamEnterprisePool::companyNames()),
             'description' => $this->faker->sentence(),
             'country' => $this->faker->countryCode(),
-            'is_active' => $this->faker->boolean(),
+            'is_active' => true,
         ];
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn () => ['is_active' => false]);
     }
 }

@@ -1,59 +1,67 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Fraudebot backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 12 / PHP 8.3 JSON API for fraud-intelligence search and entity management.
 
-## About Laravel
+## Local development
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The development stack is defined in the sibling `../docker` directory.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```bash
+cd ../docker
+docker compose up -d
+docker compose exec -T -w /var/www/backend backend php artisan migrate
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Generate a local admin token only when explicitly needed:
 
-## Learning Laravel
+```dotenv
+APP_ENV=local
+DEV_TOKEN_ENABLED=true
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Then call `POST /api/admin/token`. This route is not registered outside the local environment. Production users authenticate through `/api/auth/login`; administrative access requires an `admin` or `moderator` role and an `admin:write` token ability.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Quality checks
 
-## Laravel Sponsors
+```bash
+cd ../docker
+docker compose exec -T -w /var/www/backend backend composer format:check
+docker compose exec -T -w /var/www/backend backend composer analyse
+docker compose exec -T -w /var/www/backend backend composer test
+docker compose exec -T -w /var/www/backend backend composer audit
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Tests use in-memory SQLite. CI also performs a fresh MySQL migration to catch engine-specific schema failures.
 
-### Premium Partners
+## API overview
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- `GET /api/public/reports` — search active fraud records.
+- `GET /api/public/scammers/{id}` and `/organizations/{id}` — public profiles.
+- `POST /api/auth/register|login|logout` — scoped token lifecycle.
+- `/api/admin/*` — scoped scammer and organization administration.
+- `GET /api/public/healthcheck` — liveness.
+- `GET /api/public/readiness` — database/cache readiness.
 
-## Contributing
+The full contract is in [`openapi.yaml`](openapi.yaml).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Architecture
 
-## Code of Conduct
+- `app/Domain` contains enums, entities, and value objects.
+- `app/Application` orchestrates transactional use cases.
+- `app/Repositories` owns public read queries and versioned caching.
+- `app/Http` maps requests, authorization, and API resources.
+- `app/Models` contains persistence relationships and cache-invalidation hooks.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Public reads expose active entities and reports only. Contact emails and phone numbers are masked. Search and administrative operations are rate-limited and privacy-preserving audit records store hashes rather than raw clues or IP addresses.
 
-## Security Vulnerabilities
+## Environment
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Start from `.env.example`. Production deployments must set:
 
-## License
+- `APP_ENV=production`, `APP_DEBUG=false`, and a generated `APP_KEY`.
+- MySQL/Redis connection values.
+- `SANCTUM_TOKEN_EXPIRATION` to the desired finite token lifetime.
+- `DEV_TOKEN_ENABLED=false`.
+- Trusted application/CDN URLs.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Never commit runtime databases, `.env` files, access tokens, or unmasked production exports.

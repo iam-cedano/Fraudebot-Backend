@@ -3,31 +3,31 @@
 namespace App\Providers;
 
 use App\Http\Controllers\Public;
-use App\Http\Controllers\Admin;
-
-use App\Infrastructure\Facebook\FacebookServiceInterface;
 use App\Infrastructure\Facebook\FacebookService;
-
+use App\Infrastructure\Facebook\FacebookServiceInterface;
 use App\Infrastructure\Instagram\InstagramService;
 use App\Infrastructure\Instagram\InstagramServiceInterface;
 use App\Infrastructure\TikTok\TikTokService;
 use App\Infrastructure\TikTok\TikTokServiceInterface;
 use App\Infrastructure\Youtube\YoutubeService;
 use App\Infrastructure\Youtube\YoutubeServiceInterface;
-
-use App\Repositories\Organization\PublicOrganizationRepository;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\ServiceProvider;
-
+use App\Models\User;
 use App\Repositories\Organization\OrganizationCardRepository;
 use App\Repositories\Organization\OrganizationCardRepositoryInterface;
 use App\Repositories\Organization\OrganizationRepositoryInterface;
+use App\Repositories\Organization\PublicOrganizationRepository;
+use App\Repositories\Scammer\PublicScammerRepository;
 use App\Repositories\Scammer\ScammerCardRepository;
 use App\Repositories\Scammer\ScammerCardRepositoryInterface;
-use App\Repositories\Scammer\PublicScammerRepository;
 use App\Repositories\Scammer\ScammerRepositoryInterface;
 use App\Repositories\Search\PublicSearchRepository;
 use App\Repositories\Search\SearchRepositoryInterface;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -64,6 +64,29 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::define(
+            'manage-fraud-data',
+            fn (User $user) => $user->is_active && in_array($user->role, ['admin', 'moderator'], true),
+        );
+
+        RateLimiter::for('public-api', fn (Request $request) => [
+            Limit::perMinute(120)->by($request->ip()),
+        ]);
+
+        RateLimiter::for('public-search', fn (Request $request) => [
+            Limit::perMinute(30)->by($request->ip()),
+        ]);
+
+        RateLimiter::for('admin', fn (Request $request) => [
+            Limit::perMinute(120)->by((string) ($request->user()?->id ?? $request->ip())),
+        ]);
+
+        RateLimiter::for('auth', fn (Request $request) => [
+            Limit::perMinute(10)->by(mb_strtolower((string) $request->input('email', $request->ip()))),
+        ]);
+
+        RateLimiter::for('dev-token', fn (Request $request) => [
+            Limit::perMinute(3)->by($request->ip()),
+        ]);
     }
 }

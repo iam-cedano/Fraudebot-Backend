@@ -10,9 +10,7 @@ use Illuminate\Http\Request;
 
 class ScammerController extends Controller
 {
-    public function __construct(private ScammerRepositoryInterface $scammerRepository)
-    {
-    }
+    public function __construct(private ScammerRepositoryInterface $scammerRepository) {}
 
     public function show(Request $request, string $id)
     {
@@ -22,7 +20,7 @@ class ScammerController extends Controller
 
         $scammer = $this->scammerRepository->findScammerById((int) $id);
 
-        if (!$scammer) {
+        if (! $scammer) {
             return response()->json(['message' => 'Scammer not found'], 404);
         }
 
@@ -31,13 +29,18 @@ class ScammerController extends Controller
 
     public function calendar(Request $request, string $id, string $year)
     {
-        if (filter_var($id, FILTER_VALIDATE_INT) === false || filter_var($year, FILTER_VALIDATE_INT) === false) {
+        if (
+            filter_var($id, FILTER_VALIDATE_INT) === false
+            || filter_var($year, FILTER_VALIDATE_INT) === false
+            || (int) $year < 2000
+            || (int) $year > now()->year + 1
+        ) {
             return response()->json(['message' => 'Invalid scammer ID or year'], 400);
         }
 
         $calendar = $this->scammerRepository->findCalendarByScammerIdAndYear((int) $id, (int) $year);
 
-        if (!$calendar) {
+        if (! $calendar) {
             return response()->json(['message' => 'Scammer not found'], 404);
         }
 
@@ -57,20 +60,24 @@ class ScammerController extends Controller
         if (
             filter_var($id, FILTER_VALIDATE_INT) === false ||
             filter_var($page, FILTER_VALIDATE_INT) === false ||
-            filter_var($count, FILTER_VALIDATE_INT) === false
+            filter_var($count, FILTER_VALIDATE_INT) === false ||
+            (int) $page < 1 ||
+            (int) $page > 100000 ||
+            (int) $count < 1 ||
+            (int) $count > 100
         ) {
             return response()->json(['message' => 'Invalid scammer ID, page or count'], 400);
         }
 
         $contacts = $this->scammerRepository->findPaginatedContactsById((int) $id, (int) $page, (int) $count, $platform);
 
-        if (!$contacts) {
+        if (! $contacts) {
             return response()->json(['message' => 'Contacts not found'], 404);
         }
 
         return response()->json([
-            'data' => ContactResource::collection($contacts)->resolve(),
-            'total' => $contacts->count(),
+            'data' => ContactResource::collection($contacts->items)->resolve(),
+            'total' => $contacts->total,
             'page' => (int) $page,
             'count' => (int) $count,
         ]);

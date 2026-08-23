@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Domain\PaymentMethod\PaymentMethodEntity;
-use App\Domain\PaymentMethod\ValueObjects\Reference;
+use App\Application\Admin\AttachPaymentMethodAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\PaymentMethodRequest;
+use App\Http\Requests\Admin\StoreOrganizationRequest;
+use App\Http\Requests\Admin\UpdateOrganizationRequest;
 use App\Http\Resources\Admin\BasicOrganizationResource;
 use App\Http\Resources\Admin\BasicPaymentMethodResource;
 use App\Http\Resources\Admin\BasicScammerResource;
 use App\Models\Organization;
 use App\Models\Scammer;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class OrganizationController extends Controller
 {
@@ -26,20 +26,9 @@ class OrganizationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreOrganizationRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'country' => 'nullable|string|size:2',
-            'is_active' => 'boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $organization = Organization::create($request->all());
+        $organization = Organization::create($request->validated());
 
         $resource = new BasicOrganizationResource($organization);
 
@@ -63,21 +52,9 @@ class OrganizationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Organization $organization)
+    public function update(UpdateOrganizationRequest $request, Organization $organization)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'country' => 'nullable|string|size:2',
-            'is_active' => 'sometimes|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $organization->update($request->all());
-
+        $organization->update($request->validated());
 
         return response()->json($organization);
     }
@@ -95,12 +72,12 @@ class OrganizationController extends Controller
     /**
      * Restore the specified resource from storage.
      */
-    public function restore(int $id)
+    public function restore(int $organization)
     {
-        $organization = Organization::onlyTrashed()->findOrFail($id);
-        $organization->restore();
+        $model = Organization::onlyTrashed()->findOrFail($organization);
+        $model->restore();
 
-        $resource = new BasicOrganizationResource($organization);
+        $resource = new BasicOrganizationResource($model);
 
         return response()->json($resource);
     }
@@ -115,29 +92,20 @@ class OrganizationController extends Controller
         return response()->json(['message' => 'Scammer added successfully'], 201);
     }
 
-    public function createPaymentMethod(Request $request, Organization $organization)
-    {
-        $validator = Validator::make($request->all(), [
-            'reference' => 'required|string|max:255',
-            'type' => 'required',
-            'is_active' => 'boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+    public function createPaymentMethod(
+        PaymentMethodRequest $request,
+        Organization $organization,
+        AttachPaymentMethodAction $action,
+    ) {
+        $data = $request->validated();
+        if ($organization->paymentMethods()->where([
+            'reference' => $data['reference'],
+            'type' => $data['type'],
+        ])->exists()) {
+            return response()->json(['error' => 'Payment method already exists for this organization'], 422);
         }
 
-        $inputPaymentType = $request->input('type');
-
-        $paymentMethodType = new PaymentMethodEntity($inputPaymentType);
-
-        $reference = new Reference($request->input('reference'));
-
-        $paymentMethod = $organization->paymentMethods()->create([
-            'reference' => $reference->getValue(),
-            'type' => $paymentMethodType->getValue(),
-            'is_active' => $request->input('is_active', true),
-        ]);
+        $paymentMethod = $action->execute($organization, $data);
 
         $resource = new BasicPaymentMethodResource($paymentMethod);
 

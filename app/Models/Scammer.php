@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Scammer\ScammerEntity;
-use App\Repositories\Search\SearchCache;
+use App\Models\Concerns\InvalidatesPublicCache;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +14,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $name
  * @property string $country
  * @property string $avatar_path
- * @property boolean $is_active
+ * @property bool $is_active
  */
 class Scammer extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, InvalidatesPublicCache, SoftDeletes;
 
     protected $fillable = [
         'name',
         'country',
         'avatar_path',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
@@ -32,38 +32,29 @@ class Scammer extends Model
     ];
 
     protected $appends = [
-        'reportCount',
+        'report_count',
     ];
 
     protected function reportCount(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->reports()->count(),
+            get: fn () => (int) ($this->attributes['reports_count']
+                ?? ($this->relationLoaded('reports') ? $this->reports->count() : 0)),
         );
     }
 
     protected static function booted()
     {
-        static::saved(function () {
-            SearchCache::invalidate();
-        });
-
         static::deleted(function (Scammer $scammer) {
             ScammerContact::query()->where('scammer_id', $scammer->id)->delete();
             ScammerPaymentMethod::query()->where('scammer_id', $scammer->id)->delete();
             ScammerReport::query()->where('scammer_id', $scammer->id)->delete();
-
-            SearchCache::invalidate();
         });
 
         static::restoring(function (Scammer $scammer) {
             ScammerContact::onlyTrashed()->where('scammer_id', $scammer->id)->restore();
             ScammerPaymentMethod::onlyTrashed()->where('scammer_id', $scammer->id)->restore();
             ScammerReport::onlyTrashed()->where('scammer_id', $scammer->id)->restore();
-        });
-
-        static::restored(function () {
-            SearchCache::invalidate();
         });
     }
 

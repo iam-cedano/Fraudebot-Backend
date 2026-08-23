@@ -15,7 +15,12 @@ class ScammerFactory extends Factory
         return [
             'name' => fake()->unique()->randomElement(ScammerNamePool::names()),
             'country' => $this->faker->countryCode(),
-            'is_active' => $this->faker->boolean(),
+            'is_active' => true,
         ];
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn () => ['is_active' => false]);
     }
 }

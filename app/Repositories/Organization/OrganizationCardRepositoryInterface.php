@@ -19,7 +19,7 @@ interface OrganizationCardRepositoryInterface
      * Fully hydrates (with eager-loaded relations) the organizations for
      * exactly these ids, keyed by id.
      *
-     * @param array<int> $ids
+     * @param  array<int>  $ids
      */
     public function hydrate(array $ids): Collection;
 }

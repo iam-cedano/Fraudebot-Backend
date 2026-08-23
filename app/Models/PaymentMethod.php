@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\PaymentMethod\Enums\PaymentMethodType;
+use App\Models\Concerns\InvalidatesPublicCache;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PaymentMethod extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, InvalidatesPublicCache, SoftDeletes;
 
     public const UPDATED_AT = 'modified_at';
 

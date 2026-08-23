@@ -46,7 +46,7 @@ return [
                 ? (env('APP_CDN') ?: env('APP_URL', 'http://localhost'))
                 : env('APP_URL', 'http://localhost'),
                 '/'
-            ) . '/storage',
+            ).'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

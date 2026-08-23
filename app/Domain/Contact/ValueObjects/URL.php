@@ -2,24 +2,28 @@
 
 namespace App\Domain\Contact\ValueObjects;
 
-class URL {
+class URL
+{
     private string $url;
 
-    public function __construct(string $url) {
+    public function __construct(string $url)
+    {
         $cleanValue = preg_replace('/\D/', '', $url);
 
-        if (!filter_var($cleanValue, FILTER_VALIDATE_URL)) {
-            throw new \InvalidArgumentException("Invalid URL format.");
+        if (! filter_var($cleanValue, FILTER_VALIDATE_URL)) {
+            throw new \InvalidArgumentException('Invalid URL format.');
         }
 
         $this->url = $cleanValue;
     }
 
-    public function getValue(): string {
+    public function getValue(): string
+    {
         return $this->url;
     }
 
-    public function __toString(): string {
+    public function __toString(): string
+    {
         return $this->url;
     }
 }

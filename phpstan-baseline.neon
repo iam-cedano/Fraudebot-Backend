@@ -1,0 +1,217 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property App\\Models\\Contact\:\:\$platform_name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/ScammerController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicOrganizationResource\:\:\$country\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicOrganizationResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicOrganizationResource\:\:\$deleted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicOrganizationResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicOrganizationResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicOrganizationResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicOrganizationResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicOrganizationResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicPaymentMethodResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicPaymentMethodResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicPaymentMethodResource\:\:\$deleted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicPaymentMethodResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicPaymentMethodResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicPaymentMethodResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicPaymentMethodResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicPaymentMethodResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicPaymentMethodResource\:\:\$modified_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicPaymentMethodResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicPaymentMethodResource\:\:\$reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicPaymentMethodResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicPaymentMethodResource\:\:\$type_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicPaymentMethodResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicScammerResource\:\:\$country\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicScammerResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicScammerResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicScammerResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicScammerResource\:\:\$deleted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicScammerResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicScammerResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicScammerResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicScammerResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicScammerResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicScammerResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicScammerResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Admin\\BasicScammerResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Admin/BasicScammerResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Public\\BasicOrganizationResource\:\:\$country\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Public/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Public\\BasicOrganizationResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Public/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Public\\BasicOrganizationResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Public/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Public\\BasicOrganizationResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Public/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Public\\BasicOrganizationResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Public/BasicOrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Public\\ContactResource\:\:\$platform\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Public/ContactResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$products\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Public/OrganizationCardResource.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Resources/Public/OrganizationResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$products\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Public/ScammerCardResource.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Resources/Public/ScammerResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Repositories/Organization/PublicOrganizationRepository.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Repositories/Scammer/PublicScammerRepository.php

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Report\ReportEntity;
+use App\Models\Concerns\InvalidatesPublicCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Report extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, InvalidatesPublicCache, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -19,6 +20,11 @@ class Report extends Model
         'description',
         'was_sucessful',
         'is_active',
+    ];
+
+    protected $casts = [
+        'was_sucessful' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     protected static function booted(): void

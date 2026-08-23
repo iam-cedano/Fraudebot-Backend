@@ -19,7 +19,7 @@ class ContactFactory extends Factory
             'name' => $this->faker->firstName(),
             'platform' => $this->faker->randomElement(PlatformType::cases()),
             'reference' => $this->faker->unique()->safeEmail(),
-            'is_active' => true
+            'is_active' => true,
         ];
     }
 }

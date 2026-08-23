@@ -4,14 +4,14 @@ namespace App\Repositories\Organization;
 
 use App\Domain\Contact\Enums\PlatformType;
 use App\Domain\PaymentMethod\Enums\PaymentMethodType;
-use App\Domain\Scammer\ValueObjects\Clue;
 use App\Domain\Scammer\Enums\ClueType;
+use App\Domain\Scammer\ValueObjects\Clue;
 use App\Models\Organization;
 use App\Repositories\Search\ClueSearchInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
-class OrganizationCardRepository implements OrganizationCardRepositoryInterface, ClueSearchInterface
+class OrganizationCardRepository implements ClueSearchInterface, OrganizationCardRepositoryInterface
 {
     public function matchQuery(Clue $clue): ?Builder
     {
@@ -22,8 +22,6 @@ class OrganizationCardRepository implements OrganizationCardRepositoryInterface,
             ClueType::AccountNumber => $this->matchByAccountNumber($clue->getValue()),
             ClueType::Phone => $this->matchByPhoneNumber($clue->getValue()),
             ClueType::Url => $this->matchByUrl($clue->getValue()),
-            ClueType::IpAddress => $this->matchByIpAddress($clue->getValue()),
-            ClueType::Username => $this->matchByUsername($clue->getValue()),
             ClueType::Name => $this->matchByName($clue->getValue()),
             ClueType::Nothing => null,
         };
@@ -37,65 +35,70 @@ class OrganizationCardRepository implements OrganizationCardRepositoryInterface,
 
         return Organization::query()
             ->whereIn('id', $ids)
-            ->with(['reports.products'])
-            ->get(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
+            ->where('is_active', true)
+            ->select(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
+            ->with(['reports' => fn ($query) => $query->where('is_active', true)->with('products')])
+            ->withCount(['reports' => fn ($query) => $query->where('is_active', true)])
+            ->get()
             ->keyBy('id');
     }
 
     public function matchByName(string $name): ?Builder
     {
-        return Organization::query()->where('name', 'LIKE', "%{$name}%");
+        $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $name);
+
+        return Organization::query()
+            ->where('is_active', true)
+            ->whereRaw("name LIKE ? ESCAPE '!'", ["%{$escaped}%"]);
     }
 
     public function matchByCardNumber(string $cardNumber): ?Builder
     {
-        return Organization::query()
-            ->whereRelation('paymentMethods', 'type', PaymentMethodType::CARD_NUMBER)
-            ->whereRelation('paymentMethods', 'reference', $cardNumber);
+        return $this->matchPaymentMethod(PaymentMethodType::CARD_NUMBER, $cardNumber);
     }
 
     public function matchByClabe(string $clabe): ?Builder
     {
-        return Organization::query()
-            ->whereRelation('paymentMethods', 'type', PaymentMethodType::CLABE)
-            ->whereRelation('paymentMethods', 'reference', $clabe);
+        return $this->matchPaymentMethod(PaymentMethodType::CLABE, $clabe);
     }
 
     public function matchByAccountNumber(string $accountNumber): ?Builder
     {
-        return Organization::query()
-            ->whereRelation('paymentMethods', 'type', PaymentMethodType::ACCOUNT_NUMBER)
-            ->whereRelation('paymentMethods', 'reference', $accountNumber);
+        return $this->matchPaymentMethod(PaymentMethodType::ACCOUNT_NUMBER, $accountNumber);
     }
 
     public function matchByEmail(string $email): ?Builder
     {
-        return Organization::query()
-            ->whereRelation('contacts', 'platform', PlatformType::EMAIL)
-            ->whereRelation('contacts', 'reference', $email);
+        return $this->matchContact(PlatformType::EMAIL, $email);
     }
 
     public function matchByPhoneNumber(string $phoneNumber): ?Builder
     {
-        return Organization::query()
-            ->whereRelation('contacts', 'platform', PlatformType::CELLPHONE)
-            ->whereRelation('contacts', 'reference', $phoneNumber);
+        return $this->matchContact(PlatformType::CELLPHONE, $phoneNumber);
     }
 
     public function matchByUrl(string $url): ?Builder
     {
+        return $this->matchContact(PlatformType::URL, $url);
+    }
+
+    private function matchPaymentMethod(PaymentMethodType $type, string $reference): Builder
+    {
         return Organization::query()
-            ->whereRelation('contacts', 'platform', PlatformType::URL)
-            ->whereRelation('contacts', 'reference', $url);
+            ->where('is_active', true)
+            ->whereHas('paymentMethods', fn (Builder $query) => $query
+                ->where('type', $type)
+                ->where('reference', $reference)
+                ->where('is_active', true));
     }
 
-    public function matchByIpAddress(string $ipAddress): ?Builder
+    private function matchContact(PlatformType $platform, string $reference): Builder
     {
-        return null;
-    }
-
-    public function matchByUsername(string $username): ?Builder
-    {
-        return null;
+        return Organization::query()
+            ->where('is_active', true)
+            ->whereHas('contacts', fn (Builder $query) => $query
+                ->where('platform', $platform)
+                ->where('reference', $reference)
+                ->where('is_active', true));
     }
 }

@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class PublicSearchRepositoryTest extends TestCase
 {
-    public function testTotalReflectsAllMatchesNotJustTheCurrentPage(): void
+    public function test_total_reflects_all_matches_not_just_the_current_page(): void
     {
         Scammer::factory()->count(15)->create(['name' => 'Jane Doe']);
 
@@ -21,7 +21,7 @@ class PublicSearchRepositoryTest extends TestCase
         $this->assertCount(10, $result->items);
     }
 
-    public function testSoftDeletedScammersAreExcludedFromSearch(): void
+    public function test_soft_deleted_scammers_are_excluded_from_search(): void
     {
         $scammer = Scammer::factory()->create(['name' => 'Deleted Guy']);
         $scammer->delete();
@@ -32,7 +32,7 @@ class PublicSearchRepositoryTest extends TestCase
         $this->assertCount(0, $result->items);
     }
 
-    public function testCacheIsInvalidatedWhenAMatchingScammerIsCreated(): void
+    public function test_cache_is_invalidated_when_a_matching_scammer_is_created(): void
     {
         Scammer::factory()->create(['name' => 'Cache Target']);
 

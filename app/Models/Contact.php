@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Domain\Contact\ContactEntity;
 use App\Domain\Contact\Enums\PlatformType;
+use App\Models\Concerns\InvalidatesPublicCache;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contact extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, InvalidatesPublicCache, SoftDeletes;
 
     protected $fillable = [
         'name',

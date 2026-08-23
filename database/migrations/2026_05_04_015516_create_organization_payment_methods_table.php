@@ -15,7 +15,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('payment_type');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            $table->softDeletes();            
+            $table->softDeletes();
 
             $table->foreign('organization_id')->references('id')->on('organizations');
         });

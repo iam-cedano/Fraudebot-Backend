@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Domain\Product\ProductEntity;
+use App\Models\Concerns\InvalidatesPublicCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, InvalidatesPublicCache;
 
     protected $fillable = [
         'category_id',

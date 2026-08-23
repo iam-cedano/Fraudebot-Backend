@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories\Scammer;
 
 use App\Domain\Scammer\ValueObjects\Clue;
@@ -18,7 +19,7 @@ interface ScammerCardRepositoryInterface
      * Fully hydrates (with eager-loaded relations) the scammers for exactly
      * these ids, keyed by id.
      *
-     * @param array<int> $ids
+     * @param  array<int>  $ids
      */
     public function hydrate(array $ids): Collection;
 }

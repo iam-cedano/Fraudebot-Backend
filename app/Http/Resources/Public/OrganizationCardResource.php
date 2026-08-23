@@ -2,11 +2,10 @@
 
 namespace App\Http\Resources\Public;
 
-use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * @property int $id

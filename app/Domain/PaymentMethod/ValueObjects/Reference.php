@@ -2,11 +2,12 @@
 
 namespace App\Domain\PaymentMethod\ValueObjects;
 
-class Reference {
-
+class Reference
+{
     private string $reference;
 
-    public function __construct(string $reference) {
+    public function __construct(string $reference)
+    {
         $this->reference = str_replace(' ', '', $reference);
     }
 

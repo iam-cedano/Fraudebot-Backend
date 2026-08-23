@@ -16,14 +16,15 @@ use Illuminate\Support\Facades\DB;
 class PublicSearchRepository implements SearchRepositoryInterface
 {
     private const CACHE_TTL_SECONDS = 3600;
+
     private const SOURCE_SCAMMER = 'scammer';
+
     private const SOURCE_ORGANIZATION = 'organization';
 
     public function __construct(
         private ScammerCardRepositoryInterface $scammerCardRepository,
         private OrganizationCardRepositoryInterface $organizationCardRepository,
-    ) {
-    }
+    ) {}
 
     public function find(Clue $clue, int $page, int $count): CardSearchResult
     {
@@ -37,7 +38,7 @@ class PublicSearchRepository implements SearchRepositoryInterface
         return Cache::remember(
             $cacheKey,
             self::CACHE_TTL_SECONDS,
-            fn() => $this->search($clue, $page, $count),
+            fn () => $this->search($clue, $page, $count),
         );
     }
 
@@ -67,7 +68,7 @@ class PublicSearchRepository implements SearchRepositoryInterface
         );
 
         $items = $candidates
-            ->map(fn($row) => $row->source_type === self::SOURCE_SCAMMER
+            ->map(fn ($row) => $row->source_type === self::SOURCE_SCAMMER
                 ? $scammerModels->get($row->id)
                 : $organizationModels->get($row->id))
             ->filter()

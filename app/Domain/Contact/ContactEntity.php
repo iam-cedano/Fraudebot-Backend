@@ -31,16 +31,12 @@ class ContactEntity extends Entity
 
     protected function validate(): void
     {
-        if (empty($this->name) || $this->name == '') {
+        if ($this->name === '') {
             throw new \InvalidArgumentException('Name cannot be empty');
         }
 
-        if (empty($this->reference) || $this->reference == '') {
+        if ($this->reference === '') {
             throw new \InvalidArgumentException('Reference cannot be empty');
-        }
-
-        if (empty($this->platformType)) {
-            throw new \InvalidArgumentException('PlatformType type cannot be empty');
         }
 
         if (strlen($this->name) > 50) {
@@ -50,14 +46,16 @@ class ContactEntity extends Entity
         if (strlen($this->reference) > 255) {
             throw new \InvalidArgumentException('Reference cannot exceed 255 characters');
         }
-
-        if (!is_bool($this->isActive)) {
-            throw new \InvalidArgumentException('Is active must be a boolean');
-        }
     }
 
-    protected function transform(): void {
+    protected function transform(): void
+    {
         $this->name = trim($this->name);
+        $this->reference = trim($this->reference);
+
+        if ($this->platformType === PlatformType::CELLPHONE) {
+            $this->reference = preg_replace('/\D+/', '', $this->reference) ?? '';
+        }
 
         if (filter_var($this->reference, FILTER_VALIDATE_URL) || preg_match('/^(?!:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/i', $this->reference) || preg_match('/^(http|https):\/\/[^ "]+$/i', $this->reference)) {
             $socialMediaVO = new Platform($this->platformType);

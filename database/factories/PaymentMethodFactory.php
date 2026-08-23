@@ -30,7 +30,7 @@ class PaymentMethodFactory extends Factory
             PaymentMethodType::CARD_NUMBER => $this->faker->unique()->creditCardNumber(),
             PaymentMethodType::CLABE => $this->faker->unique()->numerify('##################'),
             PaymentMethodType::ACCOUNT_NUMBER => $this->faker->unique()->numerify('##########'),
-            PaymentMethodType::WALLET => '0x' . $this->faker->unique()->regexify('[a-f0-9]{40}'),
+            PaymentMethodType::WALLET => '0x'.$this->faker->unique()->regexify('[a-f0-9]{40}'),
             PaymentMethodType::OTHER => $this->faker->unique()->bothify('????-########'),
         };
     }

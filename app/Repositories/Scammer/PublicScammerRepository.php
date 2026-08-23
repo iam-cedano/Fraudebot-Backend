@@ -3,48 +3,56 @@
 namespace App\Repositories\Scammer;
 
 use App\Domain\Contact\Enums\PlatformType;
-use App\Models\Report;
+use App\Domain\Search\ValueObjects\PaginatedResult;
 use App\Models\Scammer;
-use Illuminate\Support\Facades\Cache;
+use App\Repositories\Search\SearchCache;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class PublicScammerRepository implements ScammerRepositoryInterface
 {
     private const int CACHE_TTL_SECONDS = 3600;
-    private const string CACHE_KEY = 'public_scammer_id_';
 
-    public function findScammerById(int $id): Scammer|null
+    public function findScammerById(int $id): ?Scammer
     {
-        return Cache::remember(self::CACHE_KEY . $id, self::CACHE_TTL_SECONDS, fn() => Scammer::with('reports.products')->find($id));
+        return Cache::remember(
+            SearchCache::key("public:scammer:{$id}"),
+            self::CACHE_TTL_SECONDS,
+            fn () => Scammer::query()
+                ->where('is_active', true)
+                ->with(['reports' => fn ($query) => $query->where('is_active', true)->with('products')])
+                ->withCount(['reports' => fn ($query) => $query->where('is_active', true)])
+                ->find($id),
+        );
     }
 
-    public function findCalendarByScammerIdAndYear(int $id, int $year): Collection|null
+    public function findCalendarByScammerIdAndYear(int $id, int $year): ?Collection
     {
-        return Cache::remember(self::CACHE_KEY . $id . '_calendar_' . $year, self::CACHE_TTL_SECONDS, function () use ($id, $year) {
-            $scammer = Scammer::with('reports')->find($id);
+        return Cache::remember(SearchCache::key("public:scammer:{$id}:calendar:{$year}"), self::CACHE_TTL_SECONDS, function () use ($id, $year) {
+            $scammer = Scammer::query()->where('is_active', true)->with(['reports' => fn ($query) => $query->where('is_active', true)])->find($id);
 
-            if (!$scammer) {
+            if (! $scammer) {
                 return null;
             }
 
-            $monthsWithReports = $scammer->reports->filter(fn(Report $report) => $report->created_at->year == $year)
-                ->groupBy(fn(Report $report) => $report->created_at->format('n'))
-                ->map(fn(Collection $reports) => $reports->count());
+            $monthsWithReports = $scammer->reports->filter(fn ($report) => $report->created_at->year == $year)
+                ->groupBy(fn ($report) => $report->created_at->format('n'))
+                ->map(fn (Collection $reports) => $reports->count());
 
             $months = collect(range(1, 12))
-                ->mapWithKeys(fn(int $month) => [$month => $monthsWithReports->get($month, 0)]);
+                ->mapWithKeys(fn (int $month) => [$month => $monthsWithReports->get($month, 0)]);
 
             return $months;
         });
     }
 
-    public function findContactsById(int $id): Collection|null
+    public function findContactsById(int $id): ?Collection
     {
-        return Cache::remember(self::CACHE_KEY . $id . '_contacts', self::CACHE_TTL_SECONDS, function () use ($id) {
-            $scammer = Scammer::with('contacts')->find($id);
+        return Cache::remember(SearchCache::key("public:scammer:{$id}:contacts"), self::CACHE_TTL_SECONDS, function () use ($id) {
+            $scammer = Scammer::query()->where('is_active', true)->with(['contacts' => fn ($query) => $query->where('is_active', true)])->find($id);
 
-            if (!$scammer) {
+            if (! $scammer) {
                 return null;
             }
 
@@ -52,36 +60,37 @@ class PublicScammerRepository implements ScammerRepositoryInterface
         });
     }
 
-    public function findPaginatedContactsById(int $id, int $page, int $count, string $platform = null): Collection|null
+    public function findPaginatedContactsById(int $id, int $page, int $count, ?string $platform = null): ?PaginatedResult
     {
-        $cacheKey = self::CACHE_KEY . $id . '_contacts_paginated_' . $page . '_' . $count;
+        $cacheKey = "public:scammer:{$id}:contacts:{$page}:{$count}";
 
         if ($platform) {
             $cacheKey .= "_platform_{$platform}";
         }
 
-        return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($id, $page, $count, $platform) {
-            $scammer = Scammer::find($id);
+        return Cache::remember(SearchCache::key($cacheKey), self::CACHE_TTL_SECONDS, function () use ($id, $page, $count, $platform) {
+            $scammer = Scammer::query()->where('is_active', true)->find($id);
 
-            if (!$scammer) {
+            if (! $scammer) {
                 return null;
             }
 
-            $query = $scammer->contacts();
+            $query = $scammer->contacts()->where('is_active', true);
 
             if ($platform) {
                 $platformType = PlatformType::tryFromName(Str::upper($platform));
 
-                if (!$platformType) {
-                    return collect();
+                if (! $platformType) {
+                    return PaginatedResult::empty();
                 }
 
                 $query->where('platform', $platformType);
             }
 
-            return $query
-                ->forPage($page, $count)
-                ->get();
+            $total = (clone $query)->count();
+            $items = $query->forPage($page, $count)->get();
+
+            return new PaginatedResult($items, $total);
         });
     }
 }

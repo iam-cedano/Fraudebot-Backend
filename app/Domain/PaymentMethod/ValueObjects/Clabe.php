@@ -4,15 +4,16 @@ namespace App\Domain\PaymentMethod\ValueObjects;
 
 use function strlen;
 
-class Clabe {
-
+class Clabe
+{
     private string $clabe;
 
-    public function __construct(string $clabe) {
+    public function __construct(string $clabe)
+    {
         $cleanValue = preg_replace('/\D/', '', $clabe);
 
         if (strlen($cleanValue) !== 18) {
-            throw new \InvalidArgumentException("CLABE must be 18 digits long.");
+            throw new \InvalidArgumentException('CLABE must be 18 digits long.');
         }
 
         $this->clabe = $cleanValue;
@@ -27,5 +28,4 @@ class Clabe {
     {
         return $this->clabe;
     }
-
 }

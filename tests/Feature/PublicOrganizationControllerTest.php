@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 class PublicOrganizationControllerTest extends TestCase
 {
-    public function testFindOrganizationById(): void
+    public function test_find_organization_by_id(): void
     {
         /**
          * @var Organization $organization
@@ -25,23 +25,23 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson(OrganizationResource::make($organization)->resolve());
     }
 
-    public function testFindOrganizationByInvalidIdReturns400(): void
+    public function test_find_organization_by_invalid_id_returns400(): void
     {
-        $response = $this->getJson("/api/public/organizations/9999999999999999999999999999999999999999");
+        $response = $this->getJson('/api/public/organizations/9999999999999999999999999999999999999999');
 
         $response->assertStatus(400);
         $response->assertExactJson(['message' => 'Invalid organization ID']);
     }
 
-    public function testFindOrganizationByNonExistentIdReturns404(): void
+    public function test_find_organization_by_non_existent_id_returns404(): void
     {
-        $response = $this->getJson("/api/public/organizations/0");
+        $response = $this->getJson('/api/public/organizations/0');
 
         $response->assertStatus(404);
         $response->assertExactJson(['message' => 'Organization not found']);
     }
 
-    public function testFindOrganizationCalendarByIdAndYear(): void
+    public function test_find_organization_calendar_by_id_and_year(): void
     {
         /**
          * @var Organization $organization
@@ -56,7 +56,7 @@ class PublicOrganizationControllerTest extends TestCase
         $organization->reports()->attach($reports->pluck('id'));
 
         $calendar = collect(range(1, 12))
-            ->mapWithKeys(fn(int $month) => [$month => $month === 1 ? 3 : 0]);
+            ->mapWithKeys(fn (int $month) => [$month => $month === 1 ? 3 : 0]);
 
         $response = $this->getJson("/api/public/organizations/{$organization->id}/calendar/2026");
 
@@ -64,7 +64,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson($calendar->toArray());
     }
 
-    public function testFindOrganizationCalendarByInvalidIdReturns400(): void
+    public function test_find_organization_calendar_by_invalid_id_returns400(): void
     {
         $response = $this->getJson('/api/public/organizations/9999999999999999999999999999999999999999/calendar/2026');
 
@@ -72,7 +72,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Invalid organization ID or year']);
     }
 
-    public function testFindOrganizationCalendarByInvalidYearReturns400(): void
+    public function test_find_organization_calendar_by_invalid_year_returns400(): void
     {
         $response = $this->getJson('/api/public/organizations/1/calendar/not-a-year');
 
@@ -80,7 +80,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Invalid organization ID or year']);
     }
 
-    public function testFindOrganizationCalendarByNonExistentIdReturns404(): void
+    public function test_find_organization_calendar_by_non_existent_id_returns404(): void
     {
         $response = $this->getJson('/api/public/organizations/0/calendar/2026');
 
@@ -88,7 +88,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Organization not found']);
     }
 
-    public function testFindOrganizationContactsById(): void
+    public function test_find_organization_contacts_by_id(): void
     {
         $organization = Organization::factory()->create();
 
@@ -111,7 +111,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson($expected);
     }
 
-    public function testFindoOrganizationContactsByIdWithPlatformQueryParam(): void
+    public function test_findo_organization_contacts_by_id_with_platform_query_param(): void
     {
         $organization = Organization::factory()->create();
         $contacts = Contact::factory()->createMany([
@@ -152,7 +152,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson($expected);
     }
 
-    public function testFindOrganizationContactsByIdWithInvalidPageReturns404(): void
+    public function test_find_organization_contacts_by_id_with_invalid_page_returns404(): void
     {
         $page = 1;
         $count = 10;
@@ -163,7 +163,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Organization not found']);
     }
 
-    public function testFindOrganizationContactsByIdWithInvalidPageQueryParamReturns400(): void
+    public function test_find_organization_contacts_by_id_with_invalid_page_query_param_returns400(): void
     {
         $page = 'invalid-page';
         $count = 10;
@@ -174,7 +174,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Invalid page']);
     }
 
-    public function testFindOrganizationContactsByIdWithInvalidCountQueryParamReturns400(): void
+    public function test_find_organization_contacts_by_id_with_invalid_count_query_param_returns400(): void
     {
         $page = 1;
         $count = 'invalid-count';
@@ -185,7 +185,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response->assertExactJson(['message' => 'Invalid count']);
     }
 
-    public function testFindOrganizationContactsByIdWithInvalidOrganizationIdParamReturns400(): void
+    public function test_find_organization_contacts_by_id_with_invalid_organization_id_param_returns400(): void
     {
         $page = 1;
         $count = 10;
