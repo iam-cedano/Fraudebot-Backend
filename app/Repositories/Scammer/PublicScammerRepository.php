@@ -16,7 +16,7 @@ class PublicScammerRepository implements ScammerRepositoryInterface
 
     public function findScammerById(int $id): Scammer|null
     {
-        return Cache::remember(self::CACHE_KEY . $id, self::CACHE_TTL_SECONDS, fn() => Scammer::with('reports.product')->find($id));
+        return Cache::remember(self::CACHE_KEY . $id, self::CACHE_TTL_SECONDS, fn() => Scammer::with('reports.products')->find($id));
     }
 
     public function findCalendarByScammerIdAndYear(int $id, int $year): Collection|null

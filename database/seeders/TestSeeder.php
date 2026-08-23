@@ -9,7 +9,9 @@ use App\Models\Product;
 use App\Models\Report;
 use App\Models\Scammer;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection as SupportCollection;
 
 class TestSeeder extends Seeder
 {
@@ -39,9 +41,10 @@ class TestSeeder extends Seeder
             ->has(PaymentMethod::factory()->count($paymentMethods))
             ->has(Report::factory()->count($reports)->state(fn () => [
                 'user_id' => $userIds->random(),
-                'product_id' => $productIds->random(),
             ]))
-            ->afterCreating(function (Scammer $scammer) {
+            ->afterCreating(function (Scammer $scammer) use ($productIds) {
+                $this->attachProductsToReports($scammer->reports, $productIds);
+
                 $organization = $scammer->organizations()->first();
 
                 if ($organization === null) {
@@ -60,8 +63,27 @@ class TestSeeder extends Seeder
             ->has(PaymentMethod::factory()->count($paymentMethods))
             ->has(Report::factory()->count($reports)->state(fn () => [
                 'user_id' => $userIds->random(),
-                'product_id' => $productIds->random(),
             ]))
+            ->afterCreating(function (Organization $organization) use ($productIds) {
+                $this->attachProductsToReports($organization->reports, $productIds);
+            })
             ->create();
+    }
+
+    /**
+     * @param  Collection<int, Report>  $reports
+     * @param  SupportCollection<int, int>  $productIds
+     */
+    private function attachProductsToReports(Collection $reports, SupportCollection $productIds): void
+    {
+        foreach ($reports as $report) {
+            $take = $productIds->count() === 1
+                ? 1
+                : fake()->numberBetween(1, $productIds->count());
+
+            $report->products()->syncWithoutDetaching(
+                $productIds->random($take)->values()->all(),
+            );
+        }
     }
 }

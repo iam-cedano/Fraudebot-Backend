@@ -34,7 +34,7 @@ class ScammerCardRepository implements ScammerCardRepositoryInterface, ClueSearc
 
         return Scammer::query()
             ->whereIn('id', $ids)
-            ->with(['organizations', 'reports.product'])
+            ->with(['organizations', 'reports.products'])
             ->get(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
             ->keyBy('id');
     }

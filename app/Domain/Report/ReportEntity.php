@@ -8,7 +8,6 @@ class ReportEntity extends Entity
 {
     public function __construct(
         public readonly ?int $id,
-        public readonly int $productId,
         public readonly int $userId,
         public string $title,
         public string $description,
@@ -32,7 +31,6 @@ class ReportEntity extends Entity
     {
         return [
             'id' => $this->id,
-            'product_id' => $this->productId,
             'user_id' => $this->userId,
             'title' => $this->title,
             'description' => $this->description,

@@ -16,7 +16,7 @@ class PublicOrganizationRepository implements OrganizationRepositoryInterface
 
     public function findOrganizationById(int $id): Organization|null
     {
-        return Cache::remember(self::CACHE_KEY . $id, self::CACHE_TTL_SECONDS, fn() => Organization::with('reports.product')->find($id));
+        return Cache::remember(self::CACHE_KEY . $id, self::CACHE_TTL_SECONDS, fn() => Organization::with('reports.products')->find($id));
     }
 
     public function findCalendarByOrganizationIdAndYear(int $id, int $year): Collection|null

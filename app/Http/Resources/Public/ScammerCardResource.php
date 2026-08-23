@@ -29,7 +29,7 @@ class ScammerCardResource extends JsonResource
             'is_active' => $this->is_active,
             'reports' => $this->reports->count(),
             'organizations' => $this->organizations->pluck('name')->all(),
-            'products' => $this->reports->pluck('product.name')->filter()->unique()->values()->all(),
+            'products' => $this->reports->flatMap(fn ($report) => $report->products->pluck('name'))->filter()->unique()->values()->all(),
             'type' => 'scammer',
             'created_at' => $this->created_at->format('Y-m-d'),
             'updated_at' => $this->updated_at->format('Y-m-d'),

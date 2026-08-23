@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Domain\Product\ProductEntity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
@@ -25,11 +26,15 @@ class Product extends Model
     }
 
     /**
-     * Get the reports for the product.
+     * Get the reports associated with the product.
      */
-    public function reports()
+    public function reports(): BelongsToMany
     {
-        return $this->hasMany(Report::class);
+        return $this->belongsToMany(Report::class, 'reports_products')
+            ->using(ReportProduct::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**

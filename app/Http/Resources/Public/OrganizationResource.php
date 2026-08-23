@@ -31,7 +31,7 @@ class OrganizationResource extends JsonResource
             'country' => config('countries')[$this->country] ?? 'Unknown',
             'reports' => $this->report_count,
             'avatar_path' => $this->avatar_path === null ? null : $publicDisk->url($this->avatar_path),
-            'products' => $this->reports->pluck('product.name')->filter()->unique()->values()->all(),
+            'products' => $this->reports->flatMap(fn ($report) => $report->products->pluck('name'))->filter()->unique()->values()->all(),
             'status' => $this->is_active,
             'created_at' => $this->created_at->format('Y-m-d'),
         ];

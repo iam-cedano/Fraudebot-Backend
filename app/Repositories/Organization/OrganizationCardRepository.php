@@ -37,7 +37,7 @@ class OrganizationCardRepository implements OrganizationCardRepositoryInterface,
 
         return Organization::query()
             ->whereIn('id', $ids)
-            ->with(['reports.product'])
+            ->with(['reports.products'])
             ->get(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
             ->keyBy('id');
     }

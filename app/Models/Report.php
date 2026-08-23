@@ -14,19 +14,34 @@ class Report extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'product_id',
         'user_id',
         'title',
         'description',
         'was_sucessful',
         'is_active',
     ];
-    /**
-     * Get the product that owns the report.
-     */
-    public function product(): BelongsTo
+
+    protected static function booted(): void
     {
-        return $this->belongsTo(Product::class);
+        static::deleted(function (Report $report) {
+            ReportProduct::query()->where('report_id', $report->id)->delete();
+        });
+
+        static::restoring(function (Report $report) {
+            ReportProduct::onlyTrashed()->where('report_id', $report->id)->restore();
+        });
+    }
+
+    /**
+     * Get the products associated with the report.
+     */
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'reports_products')
+            ->using(ReportProduct::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at')
+            ->wherePivotNull('deleted_at');
     }
 
     /**
@@ -62,7 +77,6 @@ class Report extends Model
     {
         return new ReportEntity(
             id: $this->id,
-            productId: $this->product_id,
             userId: $this->user_id,
             title: $this->title,
             description: $this->description,
