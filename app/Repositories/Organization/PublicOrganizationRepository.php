@@ -2,10 +2,12 @@
 
 namespace App\Repositories\Organization;
 
+use App\Domain\Contact\Enums\PlatformType;
 use App\Models\Organization;
 use App\Models\Report;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class PublicOrganizationRepository implements OrganizationRepositoryInterface
 {
@@ -34,6 +36,52 @@ class PublicOrganizationRepository implements OrganizationRepositoryInterface
                 ->mapWithKeys(fn(int $month) => [$month => $monthsWithReports->get($month, 0)]);
 
             return $months;
+        });
+    }
+
+    public function findContactsById(int $id): Collection|null
+    {
+        return Cache::remember(self::CACHE_KEY . $id . '_contacts', self::CACHE_TTL_SECONDS, function () use ($id) {
+            $organization = Organization::with('contacts')->find($id);
+
+            if (!$organization) {
+                return null;
+            }
+
+            return $organization->contacts;
+        });
+    }
+
+    public function findPaginatedContactsById(int $id, int $page, int $count, string $platform = null): Collection|null
+    {
+        $cacheKey = self::CACHE_KEY . $id . '_contacts_paginated_' . $page . '_' . $count;
+
+        if ($platform) {
+            $cacheKey .= "_platform_{$platform}";
+        }
+
+        return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($id, $page, $count, $platform) {
+            $organization = Organization::find($id);
+
+            if (!$organization) {
+                return null;
+            }
+
+            $query = $organization->contacts();
+
+            if ($platform) {
+                $platformType = PlatformType::tryFromName(Str::upper($platform));
+
+                if (!$platformType) {
+                    return collect();
+                }
+
+                $query->where('platform', $platformType);
+            }
+
+            return $query
+                ->forPage($page, $count)
+                ->get();
         });
     }
 }

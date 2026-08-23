@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\ReportController;
 Route::prefix('public')->group(function () {
     Route::get('organizations/{id}', [OrganizationController::class, 'show']);
     Route::get('organizations/{id}/calendar/{year}', [OrganizationController::class, 'calendar']);
+    Route::get('organizations/{id}/contacts', [OrganizationController::class, 'contacts']);
 
     Route::get('scammers/{id}', [ScammerController::class, 'show']);
     Route::get('scammers/{id}/calendar/{year}', [ScammerController::class, 'calendar']);
