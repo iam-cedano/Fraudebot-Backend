@@ -15,11 +15,26 @@ class ContactFactory extends Factory
 
     public function definition(): array
     {
+        $platform = $this->faker->randomElement(PlatformType::cases());
+
         return [
             'name' => $this->faker->firstName(),
-            'platform' => $this->faker->randomElement(PlatformType::cases()),
-            'reference' => $this->faker->unique()->safeEmail(),
+            'platform' => $platform,
+            'reference' => $this->referenceFor($platform),
             'is_active' => true,
         ];
+    }
+
+    private function referenceFor(PlatformType $platform): string
+    {
+        return match ($platform) {
+            PlatformType::EMAIL => $this->faker->unique()->safeEmail(),
+            PlatformType::CELLPHONE, PlatformType::WHATSAPP => $this->faker->unique()->numerify('+55##########'),
+            PlatformType::URL => $this->faker->unique()->url(),
+            PlatformType::YOUTUBE => '@' . $this->faker->unique()->userName(),
+            PlatformType::TIKTOK => '@' . $this->faker->unique()->userName(),
+            PlatformType::FACEBOOK, PlatformType::INSTAGRAM, PlatformType::TELEGRAM => $this->faker->unique()->userName(),
+            PlatformType::OTHER => $this->faker->unique()->bothify('????-########'),
+        };
     }
 }
