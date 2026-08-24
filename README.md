@@ -52,7 +52,7 @@ The full contract is in [`openapi.yaml`](openapi.yaml).
 - `app/Http` maps requests, authorization, and API resources.
 - `app/Models` contains persistence relationships and cache-invalidation hooks.
 
-Public reads expose active entities and reports only. Contact emails and phone numbers are masked. Search and administrative operations are rate-limited and privacy-preserving audit records store hashes rather than raw clues or IP addresses.
+Public reads expose active entities and reports only. Search and administrative operations are rate-limited and privacy-preserving audit records store hashes rather than raw clues or IP addresses.
 
 ## Environment
 
