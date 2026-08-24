@@ -28,7 +28,7 @@ class PublicSearchRepository implements SearchRepositoryInterface
 
     public function find(Clue $clue, int $page, int $count): CardSearchResult
     {
-        if ($clue->getType() === ClueType::Nothing) {
+        if ($clue->getType() === ClueType::NOTHING) {
             return CardSearchResult::empty();
         }
 

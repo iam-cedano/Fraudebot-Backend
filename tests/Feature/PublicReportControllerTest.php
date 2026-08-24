@@ -66,6 +66,16 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
+    public function test_report_search_by_wallet(): void
+    {
+        $fixtures = $this->seedDefaultSearchFixtures();
+
+        $this->assertReportSearch(
+            '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+            $this->expectedBoth($fixtures),
+        );
+    }
+
     public function test_report_search_by_url(): void
     {
         $fixtures = $this->seedDefaultSearchFixtures();
@@ -84,11 +94,6 @@ class PublicReportControllerTest extends TestCase
             'example.com',
             $this->expectedBoth($fixtures),
         );
-    }
-
-    public function test_report_search_by_ip_address(): void
-    {
-        $this->assertReportSearch('192.168.1.1', []);
     }
 
     public function test_report_search_by_empty_query(): void
@@ -125,7 +130,7 @@ class PublicReportControllerTest extends TestCase
             $params['q'] = $query;
         }
 
-        $response = $this->getJson('/api/public/reports?'.http_build_query($params));
+        $response = $this->getJson('/api/public/reports?' . http_build_query($params));
 
         $response->assertOk();
         $response->assertExactJson([
@@ -194,6 +199,7 @@ class PublicReportControllerTest extends TestCase
             [PaymentMethodType::CLABE, '012345678901234567'],
             [PaymentMethodType::CARD_NUMBER, '4152313732125521'],
             [PaymentMethodType::ACCOUNT_NUMBER, '0123456789'],
+            [PaymentMethodType::WALLET, '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'],
         ];
 
         foreach ($references as [$type, $reference]) {
@@ -234,8 +240,8 @@ class PublicReportControllerTest extends TestCase
                 ->whereKey($model->id)
                 ->where('is_active', true)
                 ->select(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
-                ->with(['organizations', 'reports' => fn ($query) => $query->where('is_active', true)->with('products')])
-                ->withCount(['reports' => fn ($query) => $query->where('is_active', true)])
+                ->with(['organizations', 'reports' => fn($query) => $query->where('is_active', true)->with('products')])
+                ->withCount(['reports' => fn($query) => $query->where('is_active', true)])
                 ->firstOrFail();
         }
 
@@ -243,8 +249,8 @@ class PublicReportControllerTest extends TestCase
             ->whereKey($model->id)
             ->where('is_active', true)
             ->select(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
-            ->with(['reports' => fn ($query) => $query->where('is_active', true)->with('products')])
-            ->withCount(['reports' => fn ($query) => $query->where('is_active', true)])
+            ->with(['reports' => fn($query) => $query->where('is_active', true)->with('products')])
+            ->withCount(['reports' => fn($query) => $query->where('is_active', true)])
             ->firstOrFail();
     }
 

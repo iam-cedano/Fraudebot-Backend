@@ -16,14 +16,15 @@ class OrganizationCardRepository implements ClueSearchInterface, OrganizationCar
     public function matchQuery(Clue $clue): ?Builder
     {
         return match ($clue->getType()) {
-            ClueType::Email => $this->matchByEmail($clue->getValue()),
-            ClueType::CardNumber => $this->matchByCardNumber($clue->getValue()),
-            ClueType::Clabe => $this->matchByClabe($clue->getValue()),
-            ClueType::AccountNumber => $this->matchByAccountNumber($clue->getValue()),
-            ClueType::Phone => $this->matchByPhoneNumber($clue->getValue()),
-            ClueType::Url => $this->matchByUrl($clue->getValue()),
-            ClueType::Name => $this->matchByName($clue->getValue()),
-            ClueType::Nothing => null,
+            ClueType::EMAIL => $this->matchByEmail($clue->getValue()),
+            ClueType::CARD_NUMBER => $this->matchByCardNumber($clue->getValue()),
+            ClueType::CLABE => $this->matchByClabe($clue->getValue()),
+            ClueType::ACCOUNT_NUMBER => $this->matchByAccountNumber($clue->getValue()),
+            ClueType::PHONE => $this->matchByPhoneNumber($clue->getValue()),
+            ClueType::URL => $this->matchByUrl($clue->getValue()),
+            ClueType::WALLET => $this->matchByWallet($clue->getValue()),
+            ClueType::NAME => $this->matchByName($clue->getValue()),
+            ClueType::NOTHING => null,
         };
     }
 
@@ -80,6 +81,11 @@ class OrganizationCardRepository implements ClueSearchInterface, OrganizationCar
     public function matchByUrl(string $url): ?Builder
     {
         return $this->matchContact(PlatformType::URL, $url);
+    }
+
+    public function matchByWallet(string $wallet): ?Builder
+    {
+        return $this->matchPaymentMethod(PaymentMethodType::WALLET, $wallet);
     }
 
     private function matchPaymentMethod(PaymentMethodType $type, string $reference): Builder

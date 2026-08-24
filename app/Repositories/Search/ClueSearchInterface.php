@@ -19,4 +19,6 @@ interface ClueSearchInterface
     public function matchByPhoneNumber(string $phoneNumber): ?Builder;
 
     public function matchByUrl(string $url): ?Builder;
+
+    public function matchByWallet(string $wallet): ?Builder;
 }

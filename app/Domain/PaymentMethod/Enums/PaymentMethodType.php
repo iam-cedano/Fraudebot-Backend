@@ -2,6 +2,11 @@
 
 namespace App\Domain\PaymentMethod\Enums;
 
+use function is_int;
+use function is_string;
+use function ctype_digit;
+use function strcasecmp;
+
 enum PaymentMethodType: int
 {
     case CARD_NUMBER = 1;
@@ -16,7 +21,7 @@ enum PaymentMethodType: int
             return self::tryFrom((int) $value);
         }
 
-        if (! is_string($value)) {
+        if (!is_string($value)) {
             return null;
         }
 
