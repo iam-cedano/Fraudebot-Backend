@@ -1,72 +1,58 @@
-openapi: 3.1.0
+openapi: "3.1.0"
 info:
-  title: Fraudebot API
+  title: Fraudebot API Description
   version: 1.0.0
-  description: Fraud intelligence search and entity management.
+  description: |
+    This API describes the Fraudebot API.
+    It is used to search for scammers/organizations that have been
+    reported by users.
 servers:
   - url: /api
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-  schemas:
-    Error:
-      type: object
-      required: [error]
-      properties:
-        error:
-          type: object
-          required: [code, message]
-          properties:
-            code: { type: string }
-            message: { type: string }
-            details: { type: object, additionalProperties: true }
 paths:
-  /auth/register:
-    post:
-      summary: Register a reporter account
+  /public/scammers/{id}:
+    summary: Get a scammer by ID
+    parameters:
+      - name: id
+        description: The ID of the scammer
+        example: 1
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      description: |
+        Get a scammer by ID.
       responses:
-        '201': { description: Account and token created }
-        '422':
-          description: Validation failed
+        200:
+          description: Returns a Scammer object
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Error' }
-  /auth/login:
-    post:
-      summary: Issue a scoped access token
-      responses:
-        '200': { description: Token issued }
-        '422': { description: Invalid credentials }
-  /auth/logout:
-    post:
-      summary: Revoke the current access token
-      security: [{ bearerAuth: [] }]
-      responses:
-        '204': { description: Token revoked }
-  /public/reports:
-    get:
-      summary: Search active fraud reports by supported clue
-      parameters:
-        - { name: q, in: query, schema: { type: string } }
-        - { name: p, in: query, schema: { type: integer, minimum: 1, maximum: 100000 } }
-        - { name: c, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
-      responses:
-        '200': { description: Search results }
-  /public/scammers/{id}:
-    get:
-      summary: Get an active scammer
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      responses:
-        '200': { description: Scammer detail }
-        '404': { description: Not found }
-  /public/organizations/{id}:
-    get:
-      summary: Get an active organization
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      responses:
-        '200': { description: Organization detail }
-        '404': { description: Not found }
+              schema:
+                $ref: "#/components/schemas/Scammer"
+        400:
+          description: Returns an error message when the scammer ID is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Invalid scammer ID"
+        404:
+          description: Returns an error message when the scammer is not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Scammer not found"
+
+components:
+  schemas:
+    Scammer:
+      $ref: "./schemas/Scammer.yaml"

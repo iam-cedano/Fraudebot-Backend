@@ -42,7 +42,7 @@ Tests use in-memory SQLite. CI also performs a fresh MySQL migration to catch en
 - `GET /api/public/healthcheck` — liveness.
 - `GET /api/public/readiness` — database/cache readiness.
 
-The full contract is in [`openapi.yaml`](openapi.yaml).
+The full contract is in [`openapi.yaml`](openapi.yaml). With the Docker stack running, interactive docs are at [http://localhost:9000/scalar](http://localhost:9000/scalar). PHP-FPM serves that page as `www-data`, so `storage/` and `bootstrap/cache` must be writable by that user.
 
 ## Architecture
 

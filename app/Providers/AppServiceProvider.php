@@ -12,6 +12,7 @@ use App\Infrastructure\TikTok\TikTokServiceInterface;
 use App\Infrastructure\Youtube\YoutubeService;
 use App\Infrastructure\Youtube\YoutubeServiceInterface;
 use App\Models\User;
+use App\OpenApi\OpenApiDocument;
 use App\Repositories\Organization\OrganizationCardRepository;
 use App\Repositories\Organization\OrganizationCardRepositoryInterface;
 use App\Repositories\Organization\OrganizationRepositoryInterface;
@@ -28,6 +29,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Scalar\Facades\Scalar;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,6 +59,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->when(Public\ScammerController::class)
             ->needs(ScammerRepositoryInterface::class)
             ->give(PublicScammerRepository::class);
+
+        $this->app->singleton(OpenApiDocument::class, fn () => OpenApiDocument::fromBasePath());
     }
 
     /**
@@ -88,5 +92,8 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('dev-token', fn (Request $request) => [
             Limit::perMinute(3)->by($request->ip()),
         ]);
+
+        Scalar::document('Fraudebot API')
+            ->content($this->app->make(OpenApiDocument::class)->bundledJson());
     }
 }

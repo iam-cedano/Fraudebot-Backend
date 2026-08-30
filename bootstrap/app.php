@@ -37,7 +37,13 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(function ($request, $e) {
-            return true; // Always return JSON regardless of headers
+            $scalarPath = trim((string) config('scalar.path', 'scalar'), '/');
+
+            if ($scalarPath !== '' && $request->is($scalarPath, $scalarPath.'/*')) {
+                return false;
+            }
+
+            return true;
         });
         $exceptions->render(function (ValidationException $exception) {
             return response()->json([

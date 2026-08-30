@@ -15,6 +15,12 @@ class EnsureResponseIsJSON
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $scalarPath = trim((string) config('scalar.path', 'scalar'), '/');
+
+        if ($scalarPath !== '' && $request->is($scalarPath, $scalarPath.'/*')) {
+            return $next($request);
+        }
+
         $request->headers->set('Accept', 'application/json');
 
         return $next($request);
