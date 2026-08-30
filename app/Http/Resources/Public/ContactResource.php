@@ -24,7 +24,7 @@ class ContactResource extends JsonResource
             'name' => $this->name,
             'reference' => $this->reference,
             'platform' => $this->platform_name,
-            'created_at' => $this->created_at->format('d-m-Y'),
+            'created_at' => $this->created_at->format('Y-m-d'),
             'is_active' => $this->is_active,
         ];
     }

@@ -1,0 +1,9 @@
+type: object
+description: Error payload returned by public controllers.
+required:
+  - message
+properties:
+  message:
+    type: string
+    description: Human-readable error message.
+    example: Invalid scammer ID

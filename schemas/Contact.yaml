@@ -1,0 +1,47 @@
+type: object
+description: A public contact attached to a scammer or organization.
+required:
+  - id
+  - name
+  - reference
+  - platform
+  - created_at
+  - is_active
+properties:
+  id:
+    type: integer
+    minimum: 1
+    description: Numeric contact ID.
+    example: 12
+  name:
+    type: string
+    description: Display name of the contact.
+    example: John Doe
+  reference:
+    type: string
+    description: Phone number, email, URL, profile, username, or other handle.
+    example: john-doe
+  platform:
+    type: string
+    description: Platform label returned by the API (`ucfirst` of the enum name).
+    enum:
+      - Whatsapp
+      - Facebook
+      - Youtube
+      - Tiktok
+      - Email
+      - Cellphone
+      - Telegram
+      - Instagram
+      - Url
+      - Other
+    example: Instagram
+  created_at:
+    type: string
+    format: date
+    description: Date the contact was created (`YYYY-MM-DD`).
+    example: "2026-08-24"
+  is_active:
+    type: boolean
+    description: Whether the contact is active. Public reads return active contacts only.
+    example: true

@@ -1,0 +1,78 @@
+type: object
+description: |
+  Monthly report counts for one calendar year.
+  Keys are month numbers `"1"` through `"12"`.
+required:
+  - "1"
+  - "2"
+  - "3"
+  - "4"
+  - "5"
+  - "6"
+  - "7"
+  - "8"
+  - "9"
+  - "10"
+  - "11"
+  - "12"
+properties:
+  "1":
+    type: integer
+    minimum: 0
+    description: Reports in January.
+    example: 10
+  "2":
+    type: integer
+    minimum: 0
+    description: Reports in February.
+    example: 3
+  "3":
+    type: integer
+    minimum: 0
+    description: Reports in March.
+    example: 0
+  "4":
+    type: integer
+    minimum: 0
+    description: Reports in April.
+    example: 1
+  "5":
+    type: integer
+    minimum: 0
+    description: Reports in May.
+    example: 3
+  "6":
+    type: integer
+    minimum: 0
+    description: Reports in June.
+    example: 9
+  "7":
+    type: integer
+    minimum: 0
+    description: Reports in July.
+    example: 8
+  "8":
+    type: integer
+    minimum: 0
+    description: Reports in August.
+    example: 1
+  "9":
+    type: integer
+    minimum: 0
+    description: Reports in September.
+    example: 1
+  "10":
+    type: integer
+    minimum: 0
+    description: Reports in October.
+    example: 34
+  "11":
+    type: integer
+    minimum: 0
+    description: Reports in November.
+    example: 0
+  "12":
+    type: integer
+    minimum: 0
+    description: Reports in December.
+    example: 12

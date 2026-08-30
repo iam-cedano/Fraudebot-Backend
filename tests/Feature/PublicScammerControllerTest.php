@@ -61,6 +61,7 @@ class PublicScammerControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertExactJson($expected);
+        $response->assertJsonPath('data.0.created_at', $contacts->first()->created_at->format('Y-m-d'));
     }
 
     public function test_find_scammer_contacts_by_id_with_platform_query_param(): void

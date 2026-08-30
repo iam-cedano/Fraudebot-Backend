@@ -58,6 +58,21 @@ YAML);
         $this->assertArrayNotHasKey('$ref', $document['components']['schemas']['Scammer']);
     }
 
+    public function test_project_spec_bundles_shared_schemas(): void
+    {
+        $root = dirname(__DIR__, 2);
+        $document = (new OpenApiDocument($root.'/openapi.yaml', $root))->bundled();
+
+        $this->assertSame('3.1.0', $document['openapi']);
+        $this->assertSame('Fraudebot API', $document['info']['title']);
+        $this->assertSame('getScammer', $document['paths']['/public/scammers/{id}']['get']['operationId']);
+        $this->assertSame('listScammerContacts', $document['paths']['/public/scammers/{id}/contacts']['get']['operationId']);
+        $this->assertSame('object', $document['components']['schemas']['Contact']['type']);
+        $this->assertArrayNotHasKey('$ref', $document['components']['schemas']['Contact']);
+        $this->assertArrayNotHasKey('$ref', $document['components']['schemas']['PaginatedContacts']['properties']['data']['items']);
+        $this->assertArrayNotHasKey('/public/reports', $document['paths']);
+    }
+
     public function test_rejects_refs_outside_the_allowed_root(): void
     {
         $outsideFile = dirname($this->root).'/openapi-outside-'.uniqid('', true).'.yaml';

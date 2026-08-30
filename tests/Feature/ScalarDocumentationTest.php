@@ -12,14 +12,14 @@ class ScalarDocumentationTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('Content-Type', 'text/html; charset=UTF-8');
-        $response->assertSee('Fraudebot API Description', false);
+        $response->assertSee('Fraudebot API', false);
         $response->assertSee('Fraudebot API Reference', false);
         $response->assertSee('Scalar.createApiReference', false);
         $response->assertSee('#\/components\/schemas\/Scammer', false);
         $response->assertSee('#\/components\/schemas\/Organization', false);
-        $response->assertSee('#\/components\/schemas\/ScammerCalendar', false);
-        $response->assertSee('#\/components\/schemas\/OrganizationCalendar', false);
-        $response->assertSee('#\/components\/schemas\/ScammerContacts', false);
-        $response->assertSee('#\/components\/schemas\/OrganizationContacts', false);
+        $response->assertSee('#\/components\/schemas\/PaginatedContacts', false);
+        $response->assertSee('#\/components\/schemas\/MonthlyReportCalendar', false);
+        $response->assertSee('listScammerContacts', false);
+        $response->assertSee('\\"Contact\\":', false);
     }
 }
