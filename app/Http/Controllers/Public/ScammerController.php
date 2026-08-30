@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\ContactResource;
+use App\Http\Resources\Public\MapResource;
 use App\Http\Resources\Public\ScammerResource;
 use App\Repositories\Scammer\ScammerRepositoryInterface;
 use Illuminate\Http\Request;
@@ -83,5 +84,20 @@ class ScammerController extends Controller
             'page' => (int) $page,
             'count' => (int) $count,
         ]);
+    }
+
+    public function map(Request $request, string $id)
+    {
+        if (filter_var($id, FILTER_VALIDATE_INT) === false) {
+            return response()->json(['message' => 'Invalid scammer ID'], 400);
+        }
+
+        $map = $this->scammerRepository->findMapById((int) $id);
+
+        if (!$map) {
+            return response()->json(['message' => 'Scammer map not found'], 404);
+        }
+
+        return response()->json((new MapResource($map))->resolve());
     }
 }

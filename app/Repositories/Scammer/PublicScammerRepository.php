@@ -3,6 +3,7 @@
 namespace App\Repositories\Scammer;
 
 use App\Domain\Contact\Enums\PlatformType;
+use App\Domain\Map\ValueObjects\MapResult;
 use App\Domain\Search\ValueObjects\PaginatedResult;
 use App\Models\Scammer;
 use App\Repositories\Search\SearchCache;
@@ -19,10 +20,10 @@ class PublicScammerRepository implements ScammerRepositoryInterface
         return Cache::remember(
             SearchCache::key("public:scammer:{$id}"),
             self::CACHE_TTL_SECONDS,
-            fn () => Scammer::query()
+            fn() => Scammer::query()
                 ->where('is_active', true)
-                ->with(['reports' => fn ($query) => $query->where('is_active', true)->with('products')])
-                ->withCount(['reports' => fn ($query) => $query->where('is_active', true)])
+                ->with(['reports' => fn($query) => $query->where('is_active', true)->with('products')])
+                ->withCount(['reports' => fn($query) => $query->where('is_active', true)])
                 ->find($id),
         );
     }
@@ -30,18 +31,18 @@ class PublicScammerRepository implements ScammerRepositoryInterface
     public function findCalendarByScammerIdAndYear(int $id, int $year): ?Collection
     {
         return Cache::remember(SearchCache::key("public:scammer:{$id}:calendar:{$year}"), self::CACHE_TTL_SECONDS, function () use ($id, $year) {
-            $scammer = Scammer::query()->where('is_active', true)->with(['reports' => fn ($query) => $query->where('is_active', true)])->find($id);
+            $scammer = Scammer::query()->where('is_active', true)->with(['reports' => fn($query) => $query->where('is_active', true)])->find($id);
 
-            if (! $scammer) {
+            if (!$scammer) {
                 return null;
             }
 
-            $monthsWithReports = $scammer->reports->filter(fn ($report) => $report->created_at->year == $year)
-                ->groupBy(fn ($report) => $report->created_at->format('n'))
-                ->map(fn (Collection $reports) => $reports->count());
+            $monthsWithReports = $scammer->reports->filter(fn($report) => $report->created_at->year == $year)
+                ->groupBy(fn($report) => $report->created_at->format('n'))
+                ->map(fn(Collection $reports) => $reports->count());
 
             $months = collect(range(1, 12))
-                ->mapWithKeys(fn (int $month) => [$month => $monthsWithReports->get($month, 0)]);
+                ->mapWithKeys(fn(int $month) => [$month => $monthsWithReports->get($month, 0)]);
 
             return $months;
         });
@@ -50,9 +51,9 @@ class PublicScammerRepository implements ScammerRepositoryInterface
     public function findContactsById(int $id): ?Collection
     {
         return Cache::remember(SearchCache::key("public:scammer:{$id}:contacts"), self::CACHE_TTL_SECONDS, function () use ($id) {
-            $scammer = Scammer::query()->where('is_active', true)->with(['contacts' => fn ($query) => $query->where('is_active', true)])->find($id);
+            $scammer = Scammer::query()->where('is_active', true)->with(['contacts' => fn($query) => $query->where('is_active', true)])->find($id);
 
-            if (! $scammer) {
+            if (!$scammer) {
                 return null;
             }
 
@@ -71,7 +72,7 @@ class PublicScammerRepository implements ScammerRepositoryInterface
         return Cache::remember(SearchCache::key($cacheKey), self::CACHE_TTL_SECONDS, function () use ($id, $page, $count, $platform) {
             $scammer = Scammer::query()->where('is_active', true)->find($id);
 
-            if (! $scammer) {
+            if (!$scammer) {
                 return null;
             }
 
@@ -80,7 +81,7 @@ class PublicScammerRepository implements ScammerRepositoryInterface
             if ($platform) {
                 $platformType = PlatformType::tryFromName(Str::upper($platform));
 
-                if (! $platformType) {
+                if (!$platformType) {
                     return PaginatedResult::empty();
                 }
 
@@ -91,6 +92,21 @@ class PublicScammerRepository implements ScammerRepositoryInterface
             $items = $query->forPage($page, $count)->get();
 
             return new PaginatedResult($items, $total);
+        });
+    }
+
+    public function findMapById(int $id): ?MapResult
+    {
+        return Cache::remember(SearchCache::key("public:scammer:{$id}:map"), self::CACHE_TTL_SECONDS, function () use ($id) {
+            $scammer = Scammer::query()->where('is_active', true)->find($id);
+
+            if (!$scammer) {
+                return MapResult::empty();
+            }
+
+            $organizations = $scammer->organizations()->where('is_active', true)->get();
+
+            return new MapResult('', collect(), collect());
         });
     }
 }
