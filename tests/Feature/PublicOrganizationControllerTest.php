@@ -56,7 +56,7 @@ class PublicOrganizationControllerTest extends TestCase
         $organization->reports()->attach($reports->pluck('id'));
 
         $calendar = collect(range(1, 12))
-            ->mapWithKeys(fn (int $month) => [$month => $month === 1 ? 3 : 0]);
+            ->mapWithKeys(fn(int $month) => [$month => $month === 1 ? 3 : 0]);
 
         $response = $this->getJson("/api/public/organizations/{$organization->id}/calendar/2026");
 
@@ -160,7 +160,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response = $this->getJson("/api/public/organizations/1/contacts?p={$page}&c={$count}");
 
         $response->assertStatus(404);
-        $response->assertExactJson(['message' => 'Organization not found']);
+        $response->assertExactJson(['message' => 'Organization contacts not found']);
     }
 
     public function test_find_organization_contacts_by_id_with_invalid_page_query_param_returns400(): void
@@ -171,7 +171,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response = $this->getJson("/api/public/organizations/1/contacts?p={$page}&c={$count}");
 
         $response->assertStatus(400);
-        $response->assertExactJson(['message' => 'Invalid page']);
+        $response->assertExactJson(['message' => 'Invalid organization ID, page or count']);
     }
 
     public function test_find_organization_contacts_by_id_with_invalid_count_query_param_returns400(): void
@@ -182,7 +182,7 @@ class PublicOrganizationControllerTest extends TestCase
         $response = $this->getJson("/api/public/organizations/1/contacts?p={$page}&c={$count}");
 
         $response->assertStatus(400);
-        $response->assertExactJson(['message' => 'Invalid count']);
+        $response->assertExactJson(['message' => 'Invalid organization ID, page or count']);
     }
 
     public function test_find_organization_contacts_by_id_with_invalid_organization_id_param_returns400(): void
@@ -193,6 +193,6 @@ class PublicOrganizationControllerTest extends TestCase
         $response = $this->getJson("/api/public/organizations/invalid-organization-id/contacts?p={$page}&c={$count}");
 
         $response->assertStatus(400);
-        $response->assertExactJson(['message' => 'Invalid organization ID']);
+        $response->assertExactJson(['message' => 'Invalid organization ID, page or count']);
     }
 }

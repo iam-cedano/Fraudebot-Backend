@@ -15,7 +15,11 @@ class ScalarDocumentationTest extends TestCase
         $response->assertSee('Fraudebot API Description', false);
         $response->assertSee('Fraudebot API Reference', false);
         $response->assertSee('Scalar.createApiReference', false);
-        $response->assertSee('A reported scammer or organization.', false);
         $response->assertSee('#\/components\/schemas\/Scammer', false);
+        $response->assertSee('#\/components\/schemas\/Organization', false);
+        $response->assertSee('#\/components\/schemas\/ScammerCalendar', false);
+        $response->assertSee('#\/components\/schemas\/OrganizationCalendar', false);
+        $response->assertSee('#\/components\/schemas\/ScammerContacts', false);
+        $response->assertSee('#\/components\/schemas\/OrganizationContacts', false);
     }
 }

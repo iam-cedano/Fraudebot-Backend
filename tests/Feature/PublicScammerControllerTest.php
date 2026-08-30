@@ -147,7 +147,7 @@ class PublicScammerControllerTest extends TestCase
         $response = $this->getJson("/api/public/scammers/1/contacts?p={$page}&c={$count}");
 
         $response->assertStatus(404);
-        $response->assertExactJson(['message' => 'Contacts not found']);
+        $response->assertExactJson(['message' => 'Scammer contacts not found']);
     }
 
     public function test_find_scammer_contacts_by_id_with_invalid_page_query_param_returns400(): void
