@@ -12,7 +12,8 @@ class OrganizationController extends Controller
 {
     public function __construct(
         private OrganizationRepositoryInterface $organizationRepository
-    ) {}
+    ) {
+    }
 
     public function show(Request $request, string $id)
     {
@@ -22,7 +23,7 @@ class OrganizationController extends Controller
 
         $organization = $this->organizationRepository->findOrganizationById((int) $id);
 
-        if (! $organization) {
+        if (!$organization) {
             return response()->json(['message' => 'Organization not found'], 404);
         }
 
@@ -42,7 +43,7 @@ class OrganizationController extends Controller
 
         $calendar = $this->organizationRepository->findCalendarByOrganizationIdAndYear((int) $id, (int) $year);
 
-        if (! $calendar) {
+        if (!$calendar) {
             return response()->json(['message' => 'Organization not found'], 404);
         }
 
@@ -59,20 +60,22 @@ class OrganizationController extends Controller
             $platform = strtolower($platform);
         }
 
-        if (filter_var($id, FILTER_VALIDATE_INT) === false) {
-            return response()->json(['message' => 'Invalid organization ID'], 400);
-        }
-        if (filter_var($page, FILTER_VALIDATE_INT) === false || (int) $page < 1 || (int) $page > 100000) {
-            return response()->json(['message' => 'Invalid page'], 400);
-        }
-        if (filter_var($count, FILTER_VALIDATE_INT) === false || (int) $count < 1 || (int) $count > 100) {
-            return response()->json(['message' => 'Invalid count'], 400);
+        if (
+            filter_var($id, FILTER_VALIDATE_INT) === false ||
+            filter_var($page, FILTER_VALIDATE_INT) === false ||
+            filter_var($count, FILTER_VALIDATE_INT) === false ||
+            (int) $page < 1 ||
+            (int) $page > 100000 ||
+            (int) $count < 1 ||
+            (int) $count > 100
+        ) {
+            return response()->json(['message' => 'Invalid organization ID, page or count'], 400);
         }
 
         $contacts = $this->organizationRepository->findPaginatedContactsById((int) $id, (int) $page, (int) $count, $platform);
 
-        if (! $contacts) {
-            return response()->json(['message' => 'Organization not found'], 404);
+        if (!$contacts) {
+            return response()->json(['message' => 'Organization contacts not found'], 404);
         }
 
         return response()->json([

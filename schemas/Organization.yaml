@@ -1,5 +1,5 @@
 type: object
-description: A reported scammer
+description: A reported organization
 properties:
   id:
     type: string
@@ -7,16 +7,16 @@ properties:
     type: string
   country:
     type: string
-    description: The country of the scammer.
+    description: The country of the organization.
   reports:
     type: integer
-    description: The number of reports for the scammer.
+    description: The number of reports for the organization.
   avatar_path:
     type: string
-    description: The URL to the avatar image for the scammer. If no avatar is available, this will be null.
+    description: The URL to the avatar image for the organization. If no avatar is available, this will be null.
   products:
     type: array
-    description: The categories of products promoted by the scammer.
+    description: The categories of products promoted by the organization.
     items:
       type: string
       enum:
@@ -41,12 +41,12 @@ properties:
         - "Other"
   status:
     type: boolean
-    description: Whether the scammer is active.
+    description: Whether the organization is active.
   created_at:
     type: string
-    description: "The date the scammer was created. Format: DD-MM-YYYY. (e.g. 24-08-2026)"
+    description: "The date the organization was created. Format: DD-MM-YYYY. (e.g. 24-08-2026)"
     example: "24-08-2026"
   updated_at:
     type: string
-    description: "The date the scammer was last updated. Format: DD-MM-YYYY. (e.g. 24-08-2026)"
+    description: "The date the organization was last updated. Format: DD-MM-YYYY. (e.g. 24-08-2026)"
     example: "24-08-2026"

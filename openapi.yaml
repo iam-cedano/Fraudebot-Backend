@@ -5,7 +5,7 @@ info:
   description: |
     This API describes the Fraudebot API.
     It is used to search for scammers/organizations that have been
-    reported by users.
+    reported by users
 servers:
   - url: /api
 paths:
@@ -21,7 +21,7 @@ paths:
           type: string
     get:
       description: |
-        Get a scammer by ID.
+        Get a scammer by ID
       responses:
         200:
           description: Returns a Scammer object
@@ -51,8 +51,279 @@ paths:
                     type: string
                     description: The error message
                     example: "Scammer not found"
-
+  /public/organizations/{id}:
+    summary: Get an organization by ID
+    parameters:
+      - name: id
+        description: The ID of the organization
+        example: 1
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      description: |
+        Get an organization by ID.
+      responses:
+        200:
+          description: Returns an Organization object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        400:
+          description: Returns an error message when the organization ID is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Invalid organization ID"
+        404:
+          description: Returns an error message when the organization is not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Organization not found"
+  /public/scammers/{id}/contacts:
+    summary: Get the contacts of a scammer by ID. Paginated results
+    parameters:
+      - name: id
+        description: The ID of the scammer
+        example: 1
+        in: path
+        required: true
+      - name: p
+        description: The page number
+        example: 1
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: c
+        description: The number of contacts per page
+        example: 10
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: platform
+        description: The platform of the contacts
+        example: "whatsapp"
+        in: query
+        required: false
+        schema:
+          type: string
+    get:
+      description: |
+        Get the contacts of a scammer by ID
+      responses:
+        200:
+          description: Returns a ScammerContacts object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScammerContacts"
+        400:
+          description: Returns an error message when the scammer ID, page or count is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Invalid scammer ID, page or count"
+        404:
+          description: Returns an error message when the scammer contacts are not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Scammer contacts not found"
+  /public/organizations/{id}/contacts:
+    summary: Get the contacts of an organization by ID. Paginated results
+    parameters:
+      - name: id
+        description: The ID of the organization
+        example: 1
+        in: path
+        required: true
+      - name: p
+        description: The page number
+        example: 1
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: c
+        description: The number of contacts per page
+        example: 10
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: platform
+        description: The platform of the contacts
+        example: "whatsapp"
+        in: query
+        required: false
+        schema:
+          type: string
+    get:
+      description: |
+        Get the contacts of an organization by ID
+      responses:
+        200:
+          description: Returns an OrganizationContacts object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationContacts"
+        400:
+          description: Returns an error message when the organization ID, page or count is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Invalid organization ID, page or count"
+        404:
+          description: Returns an error message when the organization contacts are not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Organization contacts not found"
+  /public/scammers/{id}/calendar/{year}:
+    summary: Get the calendar of reports for a scammer by ID and year
+    parameters:
+      - name: id
+        description: The ID of the scammer
+        example: 1
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: year
+        description: The year of the calendar
+        example: 2026
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      description: |
+        Get the calendar of reports for a scammer by ID and year
+      responses:
+        200:
+          description: Returns a ScammerCalendar object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScammerCalendar"
+        400:
+          description: Returns an error message when the scammer ID or year is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Invalid scammer ID or year"
+        404:
+          description: Returns an error message when the scammer calendar is not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Scammer calendar not found"
+  /public/organizations/{id}/calendar/{year}:
+    summary: Get the calendar of reports for an organization by ID and year
+    parameters:
+      - name: id
+        description: The ID of the organization
+        example: 1
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: year
+        description: The year of the calendar
+        example: 2026
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      description: |
+        Get the calendar of reports for an organization by ID and year
+      responses:
+        200:
+          description: Returns an OrganizationCalendar object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationCalendar"
+        400:
+          description: Returns an error message when the organization ID or year is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Invalid organization ID or year"
+        404:
+          description: Returns an error message when the organization calendar is not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The error message
+                    example: "Organization calendar not found"
 components:
   schemas:
     Scammer:
       $ref: "./schemas/Scammer.yaml"
+    ScammerContacts:
+      $ref: "./schemas/ScammerContacts.yaml"
+    Organization:
+      $ref: "./schemas/Organization.yaml"
+    OrganizationContacts:
+      $ref: "./schemas/OrganizationContacts.yaml"
+    ScammerCalendar:
+      $ref: "./schemas/ScammerCalendar.yaml"
+    OrganizationCalendar:
+      $ref: "./schemas/OrganizationCalendar.yaml"
