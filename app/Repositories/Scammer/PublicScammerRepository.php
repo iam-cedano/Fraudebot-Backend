@@ -4,6 +4,8 @@ namespace App\Repositories\Scammer;
 
 use App\Domain\Contact\Enums\PlatformType;
 use App\Domain\Map\ValueObjects\MapResult;
+use App\Domain\Map\ValueObjects\OrganizationNode;
+use App\Domain\Map\ValueObjects\ScammerNode;
 use App\Domain\Search\ValueObjects\PaginatedResult;
 use App\Models\Scammer;
 use App\Repositories\Search\SearchCache;
@@ -95,18 +97,24 @@ class PublicScammerRepository implements ScammerRepositoryInterface
         });
     }
 
-    public function findMapById(int $id): ?MapResult
+    public function findMapById(int $id, int $depth, int $limit): ?MapResult
     {
         return Cache::remember(SearchCache::key("public:scammer:{$id}:map"), self::CACHE_TTL_SECONDS, function () use ($id) {
             $scammer = Scammer::query()->where('is_active', true)->find($id);
 
             if (!$scammer) {
-                return MapResult::empty();
-            }
+                return null;
+            }   
 
             $organizations = $scammer->organizations()->where('is_active', true)->get();
+            $otherScammers = $organizations->flatMap(fn($organization) => $organization->scammers()->where('is_active', true)->where('id', '!=', $id)->get());
 
-            return new MapResult('', collect(), collect());
+            $organizationsNodes = OrganizationNode::fromCollection($organizations);
+            $otherScammersNodes = ScammerNode::fromCollection($otherScammers);
+
+            $nodes = Collection::mergeAll($organizationsNodes, $otherScammersNodes);
+
+            return new MapResult($nodes, collect());
         });
     }
 }

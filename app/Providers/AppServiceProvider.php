@@ -26,6 +26,7 @@ use App\Repositories\Search\SearchRepositoryInterface;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -95,5 +96,7 @@ class AppServiceProvider extends ServiceProvider
 
         Scalar::document('Fraudebot API')
             ->content($this->app->make(OpenApiDocument::class)->bundledJson());
+
+        Collection::macro('mergeAll', fn (Collection ...$collections): Collection => collect($collections)->collapse());
     }
 }
