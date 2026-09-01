@@ -108,9 +108,6 @@ class PublicScammerRepository implements ScammerRepositoryInterface
                 'contacts' => fn ($query) => $query->where('contacts.is_active', true),
                 'paymentMethods' => fn ($query) => $query->where('payment_methods.is_active', true),
                 'organizations' => fn ($query) => $query->where('organizations.is_active', true),
-                'organizations.scammers' => fn ($query) => $query
-                    ->where('scammers.is_active', true)
-                    ->where('scammers.id', '!=', $id),
             ])
             ->find($id);
 
@@ -121,27 +118,20 @@ class PublicScammerRepository implements ScammerRepositoryInterface
         $contacts = $scammer->contacts->unique('id')->values();
         $paymentMethods = $scammer->paymentMethods->unique('id')->values();
         $organizations = $scammer->organizations->unique('id')->values();
-        $otherScammers = $organizations
-            ->flatMap(fn ($organization) => $organization->scammers)
-            ->unique('id')
-            ->values();
 
         $centerNode = ScammerNode::from($scammer)->center();
         $organizationNodes = OrganizationNode::fromCollection($organizations);
-        $otherScammerNodes = ScammerNode::fromCollection($otherScammers);
         $contactNodes = ContactNode::fromCollection($contacts);
         $paymentMethodNodes = PaymentMethodNode::fromCollection($paymentMethods);
 
         $nodes = Collection::mergeAll(
             collect([$centerNode]), 
             $organizationNodes, 
-            $otherScammerNodes, 
             $contactNodes, 
-            $paymentMethodNodes
+            $paymentMethodNodes,
         );
 
         $organizationNodesById = $organizationNodes->keyBy(fn (OrganizationNode $node) => $node->id);
-        $otherScammerNodesById = $otherScammerNodes->keyBy(fn (ScammerNode $node) => $node->id);
 
         $sequence = 0;
         $edges = collect();
@@ -162,16 +152,6 @@ class PublicScammerRepository implements ScammerRepositoryInterface
             }
 
             $edges->push(Edge::linked(++$sequence, $centerNode, $organizationNode));
-
-            foreach ($organization->scammers as $relatedScammer) {
-                $relatedNode = $otherScammerNodesById->get((string) $relatedScammer->id);
-
-                if (!$relatedNode) {
-                    continue;
-                }
-
-                $edges->push(Edge::linked(++$sequence, $relatedNode, $organizationNode));
-            }
         }
 
         return new MapResult($nodes, $edges);
