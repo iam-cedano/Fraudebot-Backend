@@ -34,7 +34,7 @@ class TestSeeder extends Seeder
         $userIds = User::factory()->count($users)->create()->pluck('id');
         $productIds = Product::factory()->count($products)->create()->pluck('id');
 
-        Scammer::factory()
+        $createdScammers = Scammer::factory()
             ->count($scammers)
             ->has(Organization::factory())
             ->has(Contact::factory()->count($contacts))
@@ -68,6 +68,46 @@ class TestSeeder extends Seeder
                 $this->attachProductsToReports($organization->reports, $productIds);
             })
             ->create();
+
+        $this->attachExtraScammersToSomeOrganizations($createdScammers);
+    }
+
+    /**
+     * @param  Collection<int, Scammer>  $scammers
+     */
+    private function attachExtraScammersToSomeOrganizations(Collection $scammers): void
+    {
+        if ($scammers->count() < 2) {
+            return;
+        }
+
+        $organizations = Organization::query()->get();
+
+        if ($organizations->isEmpty()) {
+            return;
+        }
+
+        $shareCount = $organizations->count() === 1
+            ? 1
+            : (int) ceil($organizations->count() / 2);
+
+        foreach ($organizations->random($shareCount)->values() as $organization) {
+            $linkedIds = $organization->scammers()->pluck('scammers.id');
+            $candidates = $scammers->whereNotIn('id', $linkedIds->all())->values();
+
+            if ($candidates->isEmpty()) {
+                continue;
+            }
+
+            $minimum = max(1, 2 - $linkedIds->count());
+            $take = $candidates->count() <= $minimum
+                ? $candidates->count()
+                : fake()->numberBetween($minimum, $candidates->count());
+
+            $organization->scammers()->syncWithoutDetaching(
+                $candidates->random($take)->pluck('id')->all(),
+            );
+        }
     }
 
     /**
