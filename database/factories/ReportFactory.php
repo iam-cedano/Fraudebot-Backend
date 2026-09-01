@@ -34,7 +34,7 @@ class ReportFactory extends Factory
 
         return [
             'user_id' => User::factory(),
-            'title' => $this->faker->sentence(3),
+            'title' => substr($this->faker->sentence(3), 0, 50),
             'description' => $this->faker->paragraph(),
             'was_sucessful' => false,
             'is_active' => true,
