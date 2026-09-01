@@ -31,7 +31,7 @@ final class ContactNode extends Node {
             $model->id,
             NodeTypes::CONTACT,
             $model->id,
-            $model->platform->value,
+            ucfirst(strtolower($model->platform->name)),
             $model->reference,
             $model->platform,
         );
@@ -53,7 +53,7 @@ final class ContactNode extends Node {
             'contact_id' => $this->contactId,
             'label' => $this->label,
             'detail' => $this->detail,
-            'platform' => $this->platform->value,
+            'platform' => ucfirst(strtolower($this->platform->name)),
         ];
     }
 }

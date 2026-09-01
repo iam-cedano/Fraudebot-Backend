@@ -85,4 +85,26 @@ class OrganizationController extends Controller
             'count' => (int) $count,
         ]);
     }
+
+    public function map(Request $request, string $id)
+    {
+        if (
+            filter_var($id, FILTER_VALIDATE_INT) === false ||
+            (int) $id < 1
+        ) {
+            return response()->json(['message' => 'Invalid organization ID'], 400);
+        }
+
+        $map = $this->organizationRepository->findMapById((int) $id);
+
+        if (!$map) {
+            return response()->json(['message' => 'Organization map not found'], 404);
+        }
+
+        if ($map->isEmpty()) {
+            return response()->json(['message' => 'Organization map is empty'], 404);
+        }
+
+        return response()->json($map->toArray());
+    }
 }

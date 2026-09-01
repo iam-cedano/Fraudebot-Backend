@@ -87,21 +87,14 @@ class ScammerController extends Controller
 
     public function map(Request $request, string $id)
     {
-        $depth = $request->input('depth', 1);
-        $limit = $request->input('limit', 20);
-
         if (
             filter_var($id, FILTER_VALIDATE_INT) === false ||
-            filter_var($depth, FILTER_VALIDATE_INT) === false ||
-            filter_var($limit, FILTER_VALIDATE_INT) === false ||
-            (int) $depth < 1 ||
-            (int) $limit < 1 ||
             (int) $id < 1
         ) {
-            return response()->json(['message' => 'Invalid scammer ID, depth or limit'], 400);
+            return response()->json(['message' => 'Invalid scammer ID'], 400);
         }
 
-        $map = $this->scammerRepository->findMapById((int) $id, (int) $depth, (int) $limit);
+        $map = $this->scammerRepository->findMapById((int) $id);
 
         if (!$map) {
             return response()->json(['message' => 'Scammer map not found'], 404);

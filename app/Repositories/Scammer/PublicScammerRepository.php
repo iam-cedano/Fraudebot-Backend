@@ -100,7 +100,7 @@ class PublicScammerRepository implements ScammerRepositoryInterface
         });
     }
 
-    public function findMapById(int $id, int $depth, int $limit): ?MapResult
+    public function findMapById(int $id): ?MapResult
     {
         $scammer = Scammer::query()
             ->where('is_active', true)

@@ -3,11 +3,18 @@
 namespace Tests\Feature;
 
 use App\Domain\Contact\Enums\PlatformType;
+use App\Domain\Map\ValueObjects\ContactNode;
+use App\Domain\Map\ValueObjects\Edge;
+use App\Domain\Map\ValueObjects\OrganizationNode;
+use App\Domain\Map\ValueObjects\PaymentMethodNode;
+use App\Domain\Map\ValueObjects\ScammerNode;
 use App\Http\Resources\Public\ContactResource;
 use App\Http\Resources\Public\OrganizationResource;
 use App\Models\Contact;
 use App\Models\Organization;
+use App\Models\PaymentMethod;
 use App\Models\Report;
+use App\Models\Scammer;
 use Tests\TestCase;
 
 class PublicOrganizationControllerTest extends TestCase
@@ -194,5 +201,57 @@ class PublicOrganizationControllerTest extends TestCase
 
         $response->assertStatus(400);
         $response->assertExactJson(['message' => 'Invalid organization ID, page or count']);
+    }
+
+    public function test_find_organization_map_by_id(): void
+    {
+        $organization = Organization::factory()->create();
+        $scammer = Scammer::factory()->create();
+        $contact = Contact::factory()->create();
+        $paymentMethod = PaymentMethod::factory()->create();
+
+        $organization->scammers()->attach($scammer);
+        $organization->contacts()->attach($contact);
+        $organization->paymentMethods()->attach($paymentMethod);
+
+        $centerNode = OrganizationNode::from($organization)->centered();
+        $scammerNode = ScammerNode::from($scammer);
+        $contactNode = ContactNode::from($contact);
+        $paymentMethodNode = PaymentMethodNode::from($paymentMethod);
+
+        $expected = [
+            'nodes' => [
+                $centerNode->toArray(),
+                $scammerNode->toArray(),
+                $contactNode->toArray(),
+                $paymentMethodNode->toArray(),
+            ],
+            'edges' => [
+                Edge::contact(1, $contactNode, $centerNode)->toArray(),
+                Edge::payment(2, $paymentMethodNode, $centerNode)->toArray(),
+                Edge::linked(3, $centerNode, $scammerNode)->toArray(),
+            ],
+        ];
+
+        $response = $this->getJson("/api/public/organizations/{$organization->id}/map");
+
+        $response->assertStatus(200);
+        $response->assertExactJson($expected);
+    }
+
+    public function test_find_organization_map_by_invalid_id_returns400(): void
+    {
+        $response = $this->getJson('/api/public/organizations/9999999999999999999999999999999999999999/map');
+
+        $response->assertStatus(400);
+        $response->assertExactJson(['message' => 'Invalid organization ID']);
+    }
+
+    public function test_find_organization_map_by_non_existent_id_returns404(): void
+    {
+        $response = $this->getJson('/api/public/organizations/1/map');
+
+        $response->assertStatus(404);
+        $response->assertExactJson(['message' => 'Organization map not found']);
     }
 }
