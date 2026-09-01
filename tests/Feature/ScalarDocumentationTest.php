@@ -18,8 +18,11 @@ class ScalarDocumentationTest extends TestCase
         $response->assertSee('#\/components\/schemas\/Scammer', false);
         $response->assertSee('#\/components\/schemas\/Organization', false);
         $response->assertSee('#\/components\/schemas\/PaginatedContacts', false);
+        $response->assertSee('#\/components\/schemas\/PaginatedReports', false);
         $response->assertSee('#\/components\/schemas\/MonthlyReportCalendar', false);
         $response->assertSee('listScammerContacts', false);
+        $response->assertSee('listScammerReports', false);
+        $response->assertSee('listOrganizationReports', false);
         $response->assertSee('\\"Contact\\":', false);
     }
 }

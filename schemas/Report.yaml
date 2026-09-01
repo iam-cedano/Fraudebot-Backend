@@ -1,0 +1,28 @@
+type: object
+description: A public report card attached to a scammer or organization. Contains less information than an individual report.
+required:
+  - id
+  - title
+  - short_description
+  - created_at
+properties:
+  id:
+    type: integer
+    minimum: 1
+    description: Numeric report ID.
+    example: 1
+  title:
+    type: string
+    description: Report title.
+    example: Scammed me while I was pregnant!
+  short_description:
+    type:
+      - string
+      - "null"
+    description: Report description mapped as `short_description`. Public reads return the stored value without truncation.
+    example: I'm devastated, this guy scammed me...
+  created_at:
+    type: string
+    format: date
+    description: Date the report was created (`YYYY-MM-DD`).
+    example: "2026-09-01"

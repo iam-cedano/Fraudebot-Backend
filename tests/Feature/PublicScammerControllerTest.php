@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Domain\Contact\Enums\PlatformType;
 use App\Http\Resources\Public\ContactResource;
+use App\Http\Resources\Public\ReportResource;
 use App\Http\Resources\Public\ScammerResource;
 use App\Models\Contact;
+use App\Models\Report;
 use App\Models\Scammer;
 use Tests\TestCase;
 
@@ -179,6 +181,133 @@ class PublicScammerControllerTest extends TestCase
         $count = 10;
 
         $response = $this->getJson("/api/public/scammers/invalid-scammer-id/contacts?p={$page}&c={$count}");
+
+        $response->assertStatus(400);
+        $response->assertExactJson(['message' => 'Invalid scammer ID, page or count']);
+    }
+
+    public function test_find_scammer_reports_by_id(): void
+    {
+        $scammer = Scammer::factory()->create();
+        $reports = Report::factory()->count(3)->create();
+        $scammer->reports()->attach($reports->pluck('id'));
+
+        $page = 1;
+        $count = 10;
+        $expected = [
+            'data' => ReportResource::collection($reports)->resolve(),
+            'total' => $reports->count(),
+            'page' => $page,
+            'count' => $count,
+        ];
+
+        $response = $this->getJson("/api/public/scammers/{$scammer->id}/reports?p={$page}&c={$count}");
+
+        $response->assertStatus(200);
+        $response->assertExactJson($expected);
+        $response->assertJsonPath('data.0.created_at', $reports->first()->created_at->format('Y-m-d'));
+        $response->assertJsonPath('data.0.short_description', $reports->first()->description);
+    }
+
+    public function test_reports_total_reflects_all_matching_rows(): void
+    {
+        $scammer = Scammer::factory()->create();
+        $reports = Report::factory()->count(15)->create();
+        $scammer->reports()->attach($reports);
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/reports?p=1&c=10")
+            ->assertOk()
+            ->assertJsonCount(10, 'data')
+            ->assertJsonPath('total', 15);
+    }
+
+    public function test_report_pagination_is_bounded(): void
+    {
+        $scammer = Scammer::factory()->create();
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/reports?p=0&c=101")
+            ->assertBadRequest();
+    }
+
+    public function test_report_changes_invalidate_cached_public_reports(): void
+    {
+        $scammer = Scammer::factory()->create();
+        $report = Report::factory()->create(['title' => 'Before']);
+        $scammer->reports()->attach($report);
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/reports")
+            ->assertJsonPath('data.0.title', 'Before');
+
+        $report->update(['title' => 'After']);
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/reports")
+            ->assertJsonPath('data.0.title', 'After');
+    }
+
+    public function test_inactive_reports_are_omitted(): void
+    {
+        $scammer = Scammer::factory()->create();
+        $active = Report::factory()->create(['is_active' => true, 'title' => 'Active report']);
+        $inactive = Report::factory()->create(['is_active' => false, 'title' => 'Inactive report']);
+        $scammer->reports()->attach([$active->id, $inactive->id]);
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/reports")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.title', 'Active report')
+            ->assertJsonPath('total', 1);
+    }
+
+    public function test_find_scammer_reports_by_id_with_inactive_scammer_returns404(): void
+    {
+        $scammer = Scammer::factory()->create(['is_active' => false]);
+        $report = Report::factory()->create();
+        $scammer->reports()->attach($report);
+
+        $this->getJson("/api/public/scammers/{$scammer->id}/reports")
+            ->assertStatus(404)
+            ->assertExactJson(['message' => 'Scammer reports not found']);
+    }
+
+    public function test_find_scammer_reports_by_id_with_invalid_page_returns404(): void
+    {
+        $page = 1;
+        $count = 10;
+
+        $response = $this->getJson("/api/public/scammers/1/reports?p={$page}&c={$count}");
+
+        $response->assertStatus(404);
+        $response->assertExactJson(['message' => 'Scammer reports not found']);
+    }
+
+    public function test_find_scammer_reports_by_id_with_invalid_page_query_param_returns400(): void
+    {
+        $page = 'invalid-page';
+        $count = 10;
+
+        $response = $this->getJson("/api/public/scammers/1/reports?p={$page}&c={$count}");
+
+        $response->assertStatus(400);
+        $response->assertExactJson(['message' => 'Invalid scammer ID, page or count']);
+    }
+
+    public function test_find_scammer_reports_by_id_with_invalid_count_query_param_returns400(): void
+    {
+        $page = 1;
+        $count = 'invalid-count';
+
+        $response = $this->getJson("/api/public/scammers/1/reports?p={$page}&c={$count}");
+
+        $response->assertStatus(400);
+        $response->assertExactJson(['message' => 'Invalid scammer ID, page or count']);
+    }
+
+    public function test_find_scammer_reports_by_id_with_invalid_scammer_id_param_returns400(): void
+    {
+        $page = 1;
+        $count = 10;
+
+        $response = $this->getJson("/api/public/scammers/invalid-scammer-id/reports?p={$page}&c={$count}");
 
         $response->assertStatus(400);
         $response->assertExactJson(['message' => 'Invalid scammer ID, page or count']);

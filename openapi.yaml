@@ -5,7 +5,7 @@ info:
   description: |
     Public JSON API for fraud-intelligence profiles.
 
-    Only active scammers, organizations, and contacts are returned.
+    Only active scammers, organizations, contacts, and reports are returned.
     Public routes are rate-limited to 120 requests per minute per IP.
 
     Pagination uses `p` (page, 1–100000, default 1) and `c` (page size, 1–100, default 10).
@@ -17,9 +17,9 @@ servers:
   - url: /api
 tags:
   - name: Scammers
-    description: Public scammer profiles, contacts, and report calendars.
+    description: Public scammer profiles, contacts, reports, and report calendars.
   - name: Organizations
-    description: Public organization profiles, contacts, and report calendars.
+    description: Public organization profiles, contacts, reports, and report calendars.
   - name: Health
     description: Liveness and readiness checks.
 paths:
@@ -90,6 +90,41 @@ paths:
                 $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Scammer contacts not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /public/scammers/{id}/reports:
+    get:
+      tags: [Scammers]
+      operationId: listScammerReports
+      summary: List scammer reports
+      description: Returns a paginated list of active report cards for an active scammer.
+      parameters:
+        - $ref: "#/components/parameters/ScammerId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Count"
+      responses:
+        "200":
+          description: Paginated scammer report cards.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReports"
+        "400":
+          description: The scammer ID, page, or count is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+              example:
+                message: Invalid scammer ID, page or count
+        "404":
+          description: The scammer does not exist or is inactive.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+              example:
+                message: Scammer reports not found
         "429":
           $ref: "#/components/responses/RateLimited"
   /public/scammers/{id}/calendar/{year}:
@@ -193,6 +228,41 @@ paths:
                 $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Organization contacts not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /public/organizations/{id}/reports:
+    get:
+      tags: [Organizations]
+      operationId: listOrganizationReports
+      summary: List organization reports
+      description: Returns a paginated list of active report cards for an active organization.
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Count"
+      responses:
+        "200":
+          description: Paginated organization report cards.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedReports"
+        "400":
+          description: The organization ID, page, or count is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+              example:
+                message: Invalid organization ID, page or count
+        "404":
+          description: The organization does not exist or is inactive.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+              example:
+                message: Organization reports not found
         "429":
           $ref: "#/components/responses/RateLimited"
   /public/organizations/{id}/calendar/{year}:
@@ -376,6 +446,10 @@ components:
       $ref: ./schemas/Contact.yaml
     PaginatedContacts:
       $ref: ./schemas/PaginatedContacts.yaml
+    Report:
+      $ref: ./schemas/Report.yaml
+    PaginatedReports:
+      $ref: ./schemas/PaginatedReports.yaml
     MonthlyReportCalendar:
       $ref: ./schemas/MonthlyReportCalendar.yaml
     ReportedEntity:

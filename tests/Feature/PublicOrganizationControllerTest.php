@@ -10,6 +10,7 @@ use App\Domain\Map\ValueObjects\PaymentMethodNode;
 use App\Domain\Map\ValueObjects\ScammerNode;
 use App\Http\Resources\Public\ContactResource;
 use App\Http\Resources\Public\OrganizationResource;
+use App\Http\Resources\Public\ReportResource;
 use App\Models\Contact;
 use App\Models\Organization;
 use App\Models\PaymentMethod;
@@ -198,6 +199,133 @@ class PublicOrganizationControllerTest extends TestCase
         $count = 10;
 
         $response = $this->getJson("/api/public/organizations/invalid-organization-id/contacts?p={$page}&c={$count}");
+
+        $response->assertStatus(400);
+        $response->assertExactJson(['message' => 'Invalid organization ID, page or count']);
+    }
+
+    public function test_find_organization_reports_by_id(): void
+    {
+        $organization = Organization::factory()->create();
+        $reports = Report::factory()->count(3)->create();
+        $organization->reports()->attach($reports->pluck('id'));
+
+        $page = 1;
+        $count = 10;
+        $expected = [
+            'data' => ReportResource::collection($reports)->resolve(),
+            'total' => $reports->count(),
+            'page' => $page,
+            'count' => $count,
+        ];
+
+        $response = $this->getJson("/api/public/organizations/{$organization->id}/reports?p={$page}&c={$count}");
+
+        $response->assertStatus(200);
+        $response->assertExactJson($expected);
+        $response->assertJsonPath('data.0.created_at', $reports->first()->created_at->format('Y-m-d'));
+        $response->assertJsonPath('data.0.short_description', $reports->first()->description);
+    }
+
+    public function test_organization_reports_total_reflects_all_matching_rows(): void
+    {
+        $organization = Organization::factory()->create();
+        $reports = Report::factory()->count(15)->create();
+        $organization->reports()->attach($reports);
+
+        $this->getJson("/api/public/organizations/{$organization->id}/reports?p=1&c=10")
+            ->assertOk()
+            ->assertJsonCount(10, 'data')
+            ->assertJsonPath('total', 15);
+    }
+
+    public function test_organization_report_pagination_is_bounded(): void
+    {
+        $organization = Organization::factory()->create();
+
+        $this->getJson("/api/public/organizations/{$organization->id}/reports?p=0&c=101")
+            ->assertBadRequest();
+    }
+
+    public function test_report_changes_invalidate_cached_public_organization_reports(): void
+    {
+        $organization = Organization::factory()->create();
+        $report = Report::factory()->create(['title' => 'Before']);
+        $organization->reports()->attach($report);
+
+        $this->getJson("/api/public/organizations/{$organization->id}/reports")
+            ->assertJsonPath('data.0.title', 'Before');
+
+        $report->update(['title' => 'After']);
+
+        $this->getJson("/api/public/organizations/{$organization->id}/reports")
+            ->assertJsonPath('data.0.title', 'After');
+    }
+
+    public function test_inactive_organization_reports_are_omitted(): void
+    {
+        $organization = Organization::factory()->create();
+        $active = Report::factory()->create(['is_active' => true, 'title' => 'Active report']);
+        $inactive = Report::factory()->create(['is_active' => false, 'title' => 'Inactive report']);
+        $organization->reports()->attach([$active->id, $inactive->id]);
+
+        $this->getJson("/api/public/organizations/{$organization->id}/reports")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.title', 'Active report')
+            ->assertJsonPath('total', 1);
+    }
+
+    public function test_find_organization_reports_by_id_with_inactive_organization_returns404(): void
+    {
+        $organization = Organization::factory()->create(['is_active' => false]);
+        $report = Report::factory()->create();
+        $organization->reports()->attach($report);
+
+        $this->getJson("/api/public/organizations/{$organization->id}/reports")
+            ->assertStatus(404)
+            ->assertExactJson(['message' => 'Organization reports not found']);
+    }
+
+    public function test_find_organization_reports_by_id_with_invalid_page_returns404(): void
+    {
+        $page = 1;
+        $count = 10;
+
+        $response = $this->getJson("/api/public/organizations/1/reports?p={$page}&c={$count}");
+
+        $response->assertStatus(404);
+        $response->assertExactJson(['message' => 'Organization reports not found']);
+    }
+
+    public function test_find_organization_reports_by_id_with_invalid_page_query_param_returns400(): void
+    {
+        $page = 'invalid-page';
+        $count = 10;
+
+        $response = $this->getJson("/api/public/organizations/1/reports?p={$page}&c={$count}");
+
+        $response->assertStatus(400);
+        $response->assertExactJson(['message' => 'Invalid organization ID, page or count']);
+    }
+
+    public function test_find_organization_reports_by_id_with_invalid_count_query_param_returns400(): void
+    {
+        $page = 1;
+        $count = 'invalid-count';
+
+        $response = $this->getJson("/api/public/organizations/1/reports?p={$page}&c={$count}");
+
+        $response->assertStatus(400);
+        $response->assertExactJson(['message' => 'Invalid organization ID, page or count']);
+    }
+
+    public function test_find_organization_reports_by_id_with_invalid_organization_id_param_returns400(): void
+    {
+        $page = 1;
+        $count = 10;
+
+        $response = $this->getJson("/api/public/organizations/invalid-organization-id/reports?p={$page}&c={$count}");
 
         $response->assertStatus(400);
         $response->assertExactJson(['message' => 'Invalid organization ID, page or count']);

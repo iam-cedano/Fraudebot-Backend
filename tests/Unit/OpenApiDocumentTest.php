@@ -67,9 +67,14 @@ YAML);
         $this->assertSame('Fraudebot API', $document['info']['title']);
         $this->assertSame('getScammer', $document['paths']['/public/scammers/{id}']['get']['operationId']);
         $this->assertSame('listScammerContacts', $document['paths']['/public/scammers/{id}/contacts']['get']['operationId']);
+        $this->assertSame('listScammerReports', $document['paths']['/public/scammers/{id}/reports']['get']['operationId']);
+        $this->assertSame('listOrganizationReports', $document['paths']['/public/organizations/{id}/reports']['get']['operationId']);
         $this->assertSame('object', $document['components']['schemas']['Contact']['type']);
         $this->assertArrayNotHasKey('$ref', $document['components']['schemas']['Contact']);
         $this->assertArrayNotHasKey('$ref', $document['components']['schemas']['PaginatedContacts']['properties']['data']['items']);
+        $this->assertSame('object', $document['components']['schemas']['Report']['type']);
+        $this->assertArrayNotHasKey('$ref', $document['components']['schemas']['Report']);
+        $this->assertArrayNotHasKey('$ref', $document['components']['schemas']['PaginatedReports']['properties']['data']['items']);
         $this->assertArrayNotHasKey('/public/reports', $document['paths']);
     }
 

@@ -100,6 +100,28 @@ class PublicOrganizationRepository implements OrganizationRepositoryInterface
         });
     }
 
+    public function findPaginatedReportsById(int $id, int $page, int $count): ?PaginatedResult
+    {
+        $cacheKey = "public:organization:{$id}:reports:{$page}:{$count}";
+
+        return Cache::remember(SearchCache::key($cacheKey), self::CACHE_TTL_SECONDS, function () use ($id, $page, $count) {
+            $organization = Organization::query()->where('is_active', true)->find($id);
+
+            if (! $organization) {
+                return null;
+            }
+
+            $query = $organization->reports()
+                ->where('is_active', true)
+                ->orderByDesc('reports.created_at');
+
+            $total = (clone $query)->count();
+            $items = $query->forPage($page, $count)->get();
+
+            return new PaginatedResult($items, $total);
+        });
+    }
+
     public function findMapById(int $id): ?MapResult
     {
         $organization = Organization::query()
