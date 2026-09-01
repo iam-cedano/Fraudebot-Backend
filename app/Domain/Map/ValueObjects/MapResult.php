@@ -22,10 +22,16 @@ final class MapResult
         return $this->nodes->isEmpty() && $this->edges->isEmpty();
     }
 
-    public function toJson(): string {
-        return json_encode([
-            'nodes' => $this->nodes,
-            'edges' => $this->edges,
-        ]);
+    public function toJson(): string
+    {
+        return json_encode($this->toArray());
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'nodes' => $this->nodes->map(fn (Node $node) => $node->toArray())->values()->all(),
+            'edges' => $this->edges->map(fn (Edge $edge) => $edge->toArray())->values()->all(),
+        ];
     }
 }

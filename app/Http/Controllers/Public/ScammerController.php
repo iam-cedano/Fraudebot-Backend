@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\ContactResource;
-use App\Http\Resources\Public\MapResource;
 use App\Http\Resources\Public\ScammerResource;
 use App\Repositories\Scammer\ScammerRepositoryInterface;
 use Illuminate\Http\Request;
@@ -112,6 +111,6 @@ class ScammerController extends Controller
             return response()->json(['message' => 'Scammer map is empty'], 404);
         }
 
-        return response()->json($map->toJson());
+        return response()->json($map->toArray());
     }
 }

@@ -16,6 +16,7 @@ Route::prefix('public')->middleware('throttle:public-api')->group(function () {
     Route::get('scammers/{id}', [ScammerController::class, 'show']);
     Route::get('scammers/{id}/calendar/{year}', [ScammerController::class, 'calendar']);
     Route::get('scammers/{id}/contacts', [ScammerController::class, 'contacts']);
+    Route::get('scammers/{id}/map', [ScammerController::class, 'map']);
 
     Route::get('reports', [ReportController::class, 'index'])
         ->middleware(['throttle:public-search', AuditApiRequest::class])
