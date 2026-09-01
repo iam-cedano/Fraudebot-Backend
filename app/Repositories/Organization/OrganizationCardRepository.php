@@ -7,6 +7,7 @@ use App\Domain\PaymentMethod\Enums\PaymentMethodType;
 use App\Domain\Scammer\Enums\ClueType;
 use App\Domain\Scammer\ValueObjects\Clue;
 use App\Models\Organization;
+use App\Repositories\Search\CardPreviewLoader;
 use App\Repositories\Search\ClueSearchInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -34,14 +35,19 @@ class OrganizationCardRepository implements ClueSearchInterface, OrganizationCar
             return collect();
         }
 
-        return Organization::query()
+        $organizations = Organization::query()
             ->whereIn('id', $ids)
             ->where('is_active', true)
             ->select(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
-            ->with(['reports' => fn ($query) => $query->where('is_active', true)->with('products')])
             ->withCount(['reports' => fn ($query) => $query->where('is_active', true)])
             ->get()
             ->keyBy('id');
+
+        $productNames = CardPreviewLoader::productNamesByOrganizationId($ids);
+
+        return $organizations->each(function (Organization $organization) use ($productNames): void {
+            $organization->setAttribute('card_product_names', $productNames->get($organization->id, []));
+        });
     }
 
     public function matchByName(string $name): ?Builder

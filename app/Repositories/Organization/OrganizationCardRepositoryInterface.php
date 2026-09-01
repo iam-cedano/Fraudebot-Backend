@@ -16,8 +16,8 @@ interface OrganizationCardRepositoryInterface
     public function matchQuery(Clue $clue): ?Builder;
 
     /**
-     * Fully hydrates (with eager-loaded relations) the organizations for
-     * exactly these ids, keyed by id.
+     * Hydrates the organizations for exactly these ids, keyed by id, with
+     * report counts and truncated product preview names.
      *
      * @param  array<int>  $ids
      */

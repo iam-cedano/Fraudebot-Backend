@@ -7,6 +7,7 @@ use App\Domain\PaymentMethod\Enums\PaymentMethodType;
 use App\Domain\Scammer\Enums\ClueType;
 use App\Domain\Scammer\ValueObjects\Clue;
 use App\Models\Scammer;
+use App\Repositories\Search\CardPreviewLoader;
 use App\Repositories\Search\ClueSearchInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -34,14 +35,21 @@ class ScammerCardRepository implements ClueSearchInterface, ScammerCardRepositor
             return collect();
         }
 
-        return Scammer::query()
+        $scammers = Scammer::query()
             ->whereIn('id', $ids)
             ->where('is_active', true)
             ->select(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
-            ->with(['organizations', 'reports' => fn ($query) => $query->where('is_active', true)->with('products')])
             ->withCount(['reports' => fn ($query) => $query->where('is_active', true)])
             ->get()
             ->keyBy('id');
+
+        $organizationNames = CardPreviewLoader::organizationNamesByScammerId($ids);
+        $productNames = CardPreviewLoader::productNamesByScammerId($ids);
+
+        return $scammers->each(function (Scammer $scammer) use ($organizationNames, $productNames): void {
+            $scammer->setAttribute('card_organization_names', $organizationNames->get($scammer->id, []));
+            $scammer->setAttribute('card_product_names', $productNames->get($scammer->id, []));
+        });
     }
 
     public function matchByName(string $name): ?Builder

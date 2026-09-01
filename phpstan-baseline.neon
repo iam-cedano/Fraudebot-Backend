@@ -175,22 +175,10 @@ parameters:
 			path: app/Http/Resources/Public/ContactResource.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$products\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Resources/Public/OrganizationCardResource.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Http/Resources/Public/OrganizationResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$products\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Resources/Public/ScammerCardResource.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between string and null will always evaluate to false\.$#'

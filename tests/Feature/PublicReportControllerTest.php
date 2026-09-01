@@ -11,6 +11,8 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Report;
 use App\Models\Scammer;
+use App\Repositories\Organization\OrganizationCardRepositoryInterface;
+use App\Repositories\Scammer\ScammerCardRepositoryInterface;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 
@@ -116,6 +118,118 @@ class PublicReportControllerTest extends TestCase
         );
     }
 
+    public function test_report_search_truncates_scammer_organizations_on_the_card(): void
+    {
+        $scammer = Scammer::factory()->create(['name' => 'Org Overflow Scammer']);
+        $organizationIds = collect(range(1, 8))->map(
+            fn (int $i) => Organization::factory()->create([
+                'name' => sprintf('Alpha Org %d', $i),
+            ])->id,
+        );
+        $scammer->organizations()->attach($organizationIds);
+
+        $this->getJson('/api/public/reports?'.http_build_query([
+            'q' => 'Org Overflow Scammer',
+            'p' => 1,
+            'c' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.0.organizations', [
+                'Alpha Org 1',
+                'Alpha Org 2',
+                'Alpha Org 3',
+                'Alpha Org 4',
+                'Alpha Org 5',
+                '...',
+            ]);
+    }
+
+    public function test_report_search_truncates_products_on_scammer_and_organization_cards(): void
+    {
+        $organization = Organization::factory()->create(['name' => 'Product Overflow Org']);
+        $scammer = Scammer::factory()->create([
+            'name' => 'Product Overflow Scammer',
+            'updated_at' => now()->subDay(),
+        ]);
+
+        $report = Report::factory()->create(['is_active' => true]);
+        $organization->reports()->attach($report);
+        $scammer->reports()->attach($report);
+
+        collect(range(1, 8))->each(function (int $i) use ($report): void {
+            $product = Product::factory()->create([
+                'name' => sprintf('Beta Product %d', $i),
+            ]);
+            $report->products()->attach($product);
+        });
+
+        $expectedProducts = [
+            'Beta Product 1',
+            'Beta Product 2',
+            'Beta Product 3',
+            'Beta Product 4',
+            'Beta Product 5',
+            '...',
+        ];
+
+        $this->getJson('/api/public/reports?'.http_build_query([
+            'q' => 'Product Overflow Org',
+            'p' => 1,
+            'c' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.0.products', $expectedProducts);
+
+        $this->getJson('/api/public/reports?'.http_build_query([
+            'q' => 'Product Overflow Scammer',
+            'p' => 1,
+            'c' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.0.products', $expectedProducts);
+    }
+
+    public function test_report_search_does_not_truncate_five_preview_items(): void
+    {
+        $scammer = Scammer::factory()->create(['name' => 'Five Item Scammer']);
+        $organizationIds = collect(range(1, 5))->map(
+            fn (int $i) => Organization::factory()->create([
+                'name' => sprintf('Gamma Org %d', $i),
+            ])->id,
+        );
+        $scammer->organizations()->attach($organizationIds);
+
+        $report = Report::factory()->create(['is_active' => true]);
+        $scammer->reports()->attach($report);
+        collect(range(1, 5))->each(function (int $i) use ($report): void {
+            $product = Product::factory()->create([
+                'name' => sprintf('Gamma Product %d', $i),
+            ]);
+            $report->products()->attach($product);
+        });
+
+        $this->getJson('/api/public/reports?'.http_build_query([
+            'q' => 'Five Item Scammer',
+            'p' => 1,
+            'c' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.0.organizations', [
+                'Gamma Org 1',
+                'Gamma Org 2',
+                'Gamma Org 3',
+                'Gamma Org 4',
+                'Gamma Org 5',
+            ])
+            ->assertJsonPath('data.0.products', [
+                'Gamma Product 1',
+                'Gamma Product 2',
+                'Gamma Product 3',
+                'Gamma Product 4',
+                'Gamma Product 5',
+            ]);
+    }
+
     /**
      * @param  array<int, Scammer|Organization>  $expectedModels
      */
@@ -130,7 +244,7 @@ class PublicReportControllerTest extends TestCase
             $params['q'] = $query;
         }
 
-        $response = $this->getJson('/api/public/reports?' . http_build_query($params));
+        $response = $this->getJson('/api/public/reports?'.http_build_query($params));
 
         $response->assertOk();
         $response->assertExactJson([
@@ -236,22 +350,16 @@ class PublicReportControllerTest extends TestCase
     private function loadSearchCard(Scammer|Organization $model): Scammer|Organization
     {
         if ($model instanceof Scammer) {
-            return Scammer::query()
-                ->whereKey($model->id)
-                ->where('is_active', true)
-                ->select(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
-                ->with(['organizations', 'reports' => fn($query) => $query->where('is_active', true)->with('products')])
-                ->withCount(['reports' => fn($query) => $query->where('is_active', true)])
-                ->firstOrFail();
+            /** @var Scammer $scammer */
+            $scammer = app(ScammerCardRepositoryInterface::class)->hydrate([$model->id])->get($model->id);
+
+            return $scammer;
         }
 
-        return Organization::query()
-            ->whereKey($model->id)
-            ->where('is_active', true)
-            ->select(['id', 'name', 'country', 'is_active', 'created_at', 'updated_at'])
-            ->with(['reports' => fn($query) => $query->where('is_active', true)->with('products')])
-            ->withCount(['reports' => fn($query) => $query->where('is_active', true)])
-            ->firstOrFail();
+        /** @var Organization $organization */
+        $organization = app(OrganizationCardRepositoryInterface::class)->hydrate([$model->id])->get($model->id);
+
+        return $organization;
     }
 
     /**

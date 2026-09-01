@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources\Public;
 
+use App\Http\Resources\Public\Concerns\ResolvesCardPreviewLists;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,12 +12,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property string $name
  * @property string $country
  * @property bool $is_active
- * @property Collection $reports
+ * @property int $report_count
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
 class OrganizationCardResource extends JsonResource
 {
+    use ResolvesCardPreviewLists;
+
     public function toArray(Request $request): array
     {
         return [
@@ -25,8 +27,8 @@ class OrganizationCardResource extends JsonResource
             'name' => $this->name,
             'country' => $this->country,
             'is_active' => $this->is_active,
-            'reports' => $this->reports->count(),
-            'products' => $this->reports->flatMap(fn ($report) => $report->products->pluck('name'))->filter()->unique()->values()->all(),
+            'reports' => $this->report_count,
+            'products' => $this->previewProductNames(),
             'type' => 'organization',
             'created_at' => $this->created_at->format('Y-m-d'),
             'updated_at' => $this->updated_at->format('Y-m-d'),

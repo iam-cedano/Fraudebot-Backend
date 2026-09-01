@@ -16,8 +16,8 @@ interface ScammerCardRepositoryInterface
     public function matchQuery(Clue $clue): ?Builder;
 
     /**
-     * Fully hydrates (with eager-loaded relations) the scammers for exactly
-     * these ids, keyed by id.
+     * Hydrates the scammers for exactly these ids, keyed by id, with report
+     * counts and truncated organization/product preview names.
      *
      * @param  array<int>  $ids
      */
